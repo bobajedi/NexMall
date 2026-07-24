@@ -1,8 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#f4f6f9] py-8 px-4 md:px-8 text-gray-800">
     <div class="max-w-7xl mx-auto space-y-6">
-      
-      <!-- KARTA E MIRËSEARDHJES NË KRYE -->
+
       <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 class="text-xl font-black text-gray-900 uppercase tracking-tight">
@@ -17,10 +16,8 @@
         </router-link>
       </div>
 
-      <!-- PËRMBAJTJA KRYESORE: MENYJA MAJTAS DHE ZONA E DJATHTË -->
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-        
-        <!-- MENYJA VERTIKALE MAJTAS -->
+
         <div class="bg-white border border-gray-100 rounded-3xl p-4 shadow-sm space-y-1">
           <button 
             v-for="tab in tabs" 
@@ -46,10 +43,8 @@
           </button>
         </div>
 
-        <!-- ZONA E MENAXHIMIT DJATHTAS -->
         <div class="lg:col-span-3 bg-white border border-gray-100 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-          
-          <!-- SKEMA 1: TË DHËNAT PERSONALE -->
+
           <div v-if="activeTab === 'personal'" class="space-y-6">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center justify-between">
               <span>{{ lang === 'en' ? 'Personal Information' : 'Të dhënat tuaja personale' }}</span>
@@ -99,7 +94,6 @@
             </div>
           </div>
 
-          <!-- SKEMA 2: ADRESAT -->
           <div v-if="activeTab === 'addresses'" class="space-y-6">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
               <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider">
@@ -132,7 +126,6 @@
             </div>
           </div>
 
-          <!-- SKEMA 3: POROSITË -->
           <div v-if="activeTab === 'orders'" class="space-y-6">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3">
               {{ lang === 'en' ? 'My Orders' : 'Porositë e Mua' }}
@@ -161,7 +154,6 @@
             </div>
           </div>
 
-          <!-- SKEMA 4: LISTA E DËSHIRAVE -->
           <div v-if="activeTab === 'wishlist'" class="space-y-6">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3">
               {{ lang === 'en' ? 'Wishlist' : 'Lista e dëshirave' }}
@@ -187,7 +179,6 @@
             </div>
           </div>
 
-          <!-- SKEMA 5: KARTELAT -->
           <div v-if="activeTab === 'cards'" class="space-y-6">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
               <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider">
@@ -219,7 +210,6 @@
             </div>
           </div>
 
-          <!-- SKEMA 6: PRODUKTET E KTHYERA NË STOK -->
           <div v-if="activeTab === 'returns'" class="space-y-6">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3">
               {{ lang === 'en' ? 'Returned Products' : 'Produktet e kthyera në stok' }}
@@ -229,7 +219,6 @@
             </div>
           </div>
 
-          <!-- SKEMA 7: NDRYSHO FJALËKALIMIN -->
           <div v-if="activeTab === 'password'" class="space-y-6">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3">
               {{ lang === 'en' ? 'Change Password' : 'Ndrysho fjalëkalimin' }}
@@ -249,7 +238,6 @@
             </div>
           </div>
 
-          <!-- SKEMA 8: VLERËSIMET -->
           <div v-if="activeTab === 'reviews'" class="space-y-6">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3">
               {{ lang === 'en' ? 'My Reviews' : 'Vlerësimet e mia' }}
@@ -265,7 +253,6 @@
 
     </div>
 
-    <!-- MODALI PËR SHTIMIN E ADRESËS -->
     <div v-if="showAddressModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-fade">
         <div class="flex justify-between items-center border-b border-gray-100 pb-3">
@@ -285,7 +272,6 @@
       </div>
     </div>
 
-    <!-- MODALI PËR SHTIMIN E KARTELËS -->
     <div v-if="showCardModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-fade">
         <div class="flex justify-between items-center border-b border-gray-100 pb-3">
@@ -313,11 +299,9 @@
 import { ref, inject, computed } from 'vue'
 import { currentUser, wishlist } from '../store/productStore'
 
-// Përcaktimi i gjuhës dhe skemës aktive
 const lang = inject('lang', ref('al'))
 const activeTab = ref('personal')
 
-// Menaxhimi i të dhënave të formularit të profilit
 const profileForm = ref({
   name: currentUser.value?.name || 'Edi',
   surname: currentUser.value?.surname || 'Bobaj',
@@ -326,34 +310,27 @@ const profileForm = ref({
   gender: currentUser.value?.gender || 'Mashkull'
 })
 
-// Menaxhimi i fjalëkalimit
 const passForm = ref({ current: '', newPass: '' })
 
-// Ruajtja e adresave në localStorage
 const savedAddresses = ref(JSON.parse(localStorage.getItem('nexmall_addresses')) || [
   { title: 'Shtëpia', city: 'Prizren', country: 'Kosovë', street: 'Lagjja Ortakoll', postalCode: '20000', phone: '+383 44 123 456' }
 ])
 
-// Ruajtja e kartelave bankare në localStorage
 const savedCards = ref(JSON.parse(localStorage.getItem('nexmall_cards')) || [
   { holder: 'EDI BOBAJ', number: '4532781290876543', expiry: '08/28', cvv: '123' }
 ])
 
-// Porositë e përdoruesit
 const userOrders = ref([
   { id: 'NM-9821', date: '22 Korrik 2026', status: 'Në dërgesë', itemsCount: 2, total: 45.90 },
   { id: 'NM-8432', date: '15 Qershor 2026', status: 'Dërguar', itemsCount: 1, total: 19.99 }
 ])
 
-// Kontrolli i modaleve
 const showAddressModal = ref(false)
 const showCardModal = ref(false)
 
-// Të dhënat e reja për adresa dhe kartela
 const newAddr = ref({ title: '', city: '', street: '', postalCode: '', phone: '' })
 const newCard = ref({ holder: '', number: '', expiry: '', cvv: '' })
 
-// Skedat e menysë anësore me mbështetje dy-gjuhësore (Anglisht & Shqip)
 const tabs = computed(() => [
   { id: 'personal', icon: '👤', al: 'Të dhënat personale', en: 'Personal Information' },
   { id: 'addresses', icon: '📍', al: 'Adresat', en: 'Addresses' },
@@ -365,7 +342,6 @@ const tabs = computed(() => [
   { id: 'reviews', icon: '⭐', al: 'Vlerësimet', en: 'Reviews' }
 ])
 
-// Funksioni për ruajtjen e të dhënave të profilit
 const saveProfile = () => {
   if (currentUser.value) {
     currentUser.value.name = profileForm.value.name
@@ -375,7 +351,6 @@ const saveProfile = () => {
   alert(lang.value === 'en' ? 'Profile updated successfully!' : 'Të dhënat u ruajtën me sukses!')
 }
 
-// Funksioni për shtimin e adresës së re
 const addAddress = () => {
   if (!newAddr.value.city || !newAddr.value.street) {
     return alert(lang.value === 'en' ? 'Please fill in required fields!' : 'Ju lutemi plotësoni fushat e detyrueshme!')
@@ -386,13 +361,11 @@ const addAddress = () => {
   showAddressModal.value = false
 }
 
-// Funksioni për fshirjen e adresës
 const deleteAddress = (index) => {
   savedAddresses.value.splice(index, 1)
   localStorage.setItem('nexmall_addresses', JSON.stringify(savedAddresses.value))
 }
 
-// Funksioni për shtimin e kartelës bankare
 const addCard = () => {
   if (!newCard.value.number || newCard.value.number.length < 16) {
     return alert(lang.value === 'en' ? 'Please enter a valid 16-digit card number!' : 'Ju lutemi shkruani një numër të vlefshëm prej 16 shifrash!')
@@ -403,19 +376,16 @@ const addCard = () => {
   showCardModal.value = false
 }
 
-// Funksioni për fshirjen e kartelës
 const deleteCard = (index) => {
   savedCards.value.splice(index, 1)
   localStorage.setItem('nexmall_cards', JSON.stringify(savedCards.value))
 }
 
-// Funksioni për heqjen e produktit nga lista e dëshirave
 const removeFromWishlist = (id) => {
   const index = wishlist.value.findIndex(item => item.id === id)
   if (index !== -1) wishlist.value.splice(index, 1)
 }
 
-// Funksioni për ndryshimin e fjalëkalimit
 const changePassword = () => {
   if (!passForm.value.current || !passForm.value.newPass) {
     return alert(lang.value === 'en' ? 'Please fill in all password fields!' : 'Ju lutemi plotësoni të gjitha fushat e fjalëkalimit!')

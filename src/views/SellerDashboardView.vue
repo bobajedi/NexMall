@@ -2,7 +2,6 @@
   <div class="bg-[#030408] min-h-screen text-slate-200 font-sans p-6 md:p-12">
     <div class="max-w-6xl mx-auto">
 
-      <!-- EKRANI I KYÇJES (NËSE NUK KA SESION) -->
       <div v-if="!currentUser" class="max-w-md mx-auto my-16 bg-[#07090f] border border-white/5 rounded-3xl p-8 space-y-6 shadow-2xl shadow-blue-950/20 relative overflow-hidden">
         <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
         
@@ -50,7 +49,6 @@
         </div>
       </div>
 
-      <!-- EKRANI I PANELIT (NËSE KA SESION) -->
       <div v-else class="space-y-8">
         
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
@@ -74,8 +72,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          <!-- KUSHTI I MAJTË: Rrjedha e Porosive -->
+
           <div class="lg:col-span-6 bg-white/[0.02] border border-white/5 rounded-2xl p-6 space-y-6">
             <div class="flex justify-between items-center border-b border-white/5 pb-4">
               <h2 class="text-sm font-black uppercase tracking-wider text-blue-400 flex items-center gap-2">
@@ -121,7 +118,6 @@
             </div>
           </div>
 
-          <!-- KUSHTI I DJATHTË: Shtimi Profesional i Produktit -->
           <div class="lg:col-span-6 bg-white/[0.02] border border-white/5 rounded-2xl p-6 space-y-6">
             <h2 class="text-sm font-black uppercase tracking-wider text-amber-400">
               ✨ Shto Produkt në Dyqan

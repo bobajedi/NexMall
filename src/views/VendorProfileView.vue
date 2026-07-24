@@ -1,8 +1,7 @@
 <template>
   <div class="min-h-screen bg-slate-50/50 py-8 px-4 md:px-6">
     <div class="max-w-4xl mx-auto space-y-6">
-      
-      <!-- MAĞAZA BANNER & HEADER BİLGİLERİ -->
+
       <div v-if="shopUser" class="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col sm:flex-row items-center gap-6">
         <img 
           :src="shopUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'" 
@@ -21,7 +20,6 @@
         </router-link>
       </div>
 
-      <!-- MAĞAZA BULUNAMADI DURUMU -->
       <div v-else class="bg-white p-12 rounded-[2rem] border border-slate-100 shadow-xl text-center space-y-4">
         <span class="text-4xl block">🏪</span>
         <h2 class="text-sm font-black text-slate-900 uppercase">Dyqani nuk u gjet</h2>
@@ -31,7 +29,6 @@
         </router-link>
       </div>
 
-      <!-- MAĞAZAYA AİT ÜRÜNLER LİSTESİ -->
       <div v-if="shopUser" class="space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-black text-slate-950 uppercase tracking-widest">
@@ -94,17 +91,14 @@ import { users, products, addToCartGlobal } from '../store/productStore'
 const route = useRoute()
 const router = useRouter()
 
-// URL'den mağaza adını alıyoruz (örn: /vendor/BUTIQUE%20NADI veya encode edilmiş hali)
 const shopNameParam = decodeURIComponent(route.params.shopName || '')
 
-// Mağaza sahibini users listesinden buluyoruz
 const shopUser = computed(() => {
   return users.value.find(u => 
     u.shopName && u.shopName.toLowerCase() === shopNameParam.toLowerCase()
   )
 })
 
-// Bu mağazaya ait ürünleri filtreliyoruz
 const shopProducts = computed(() => {
   if (!shopUser.value) return []
   return products.value.filter(p => 

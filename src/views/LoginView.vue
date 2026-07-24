@@ -1,23 +1,15 @@
 <template>
   <div class="min-h-screen bg-[#f4f6f9] flex items-center justify-center px-4 py-12">
     <div class="max-w-md w-full bg-white rounded-3xl border border-gray-100 p-8 md:p-10 shadow-sm space-y-6">
-      
-      <!-- Logo & Titull -->
-      <div class="text-center space-y-2">
-        <h1 class="text-3xl font-black tracking-tight text-gray-900">
-          NEX<span class="text-[#d61f43]">MALL</span>
-        </h1>
-        <p class="text-xs font-black text-gray-400 uppercase tracking-wider">
-          Kyqu në llogarinë tuaj
-        </p>
-      </div>
 
-      <!-- Mesazhi i Gabimit -->
+        <div class="flex items-center justify-between w-auto gap-6">
+            <img src="/src/store/NexMall.png" alt="NexMall Logo" class="h-40 w-58 max-h-40 object-contain scale-150 origin-left my-[-40px] group-hover:opacity-95 transition" />
+        </div>
+
       <div v-if="error" class="text-[10px] font-black text-[#d61f43] bg-red-50 p-3 rounded-xl border border-red-100 uppercase tracking-wider">
         ⚠ {{ error }}
       </div>
 
-      <!-- Formuari i Hyrjes -->
       <form @submit.prevent="handleLogin" class="space-y-4">
         <div class="space-y-1.5">
           <label class="text-[10px] font-black uppercase tracking-wider text-gray-400 block">
@@ -45,7 +37,6 @@
           />
         </div>
 
-        <!-- Opsioni Më Kujto -->
         <div class="flex items-center justify-between pt-1">
           <label class="flex items-center gap-2 cursor-pointer select-none">
             <input 
@@ -67,7 +58,6 @@
         </button>
       </form>
 
-      <!-- Udhëzimi për Regjistrim -->
       <div class="text-center pt-2">
         <p class="text-xs text-gray-400 font-medium">
           Nuk keni llogari?

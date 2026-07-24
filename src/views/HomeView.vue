@@ -1,11 +1,9 @@
 <template>
   <div class="min-h-screen bg-gray-50 pb-20">
-    
-    <!-- BANNER TË SHUMTA TË REKLAMAVE DHE FUSHATAVE -->
+
     <div class="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-4">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
-        <!-- Banner Kryesor i Reklamës -->
+
         <div class="lg:col-span-8 relative bg-gradient-to-r from-gray-950 via-gray-900 to-[#d61f43] rounded-3xl overflow-hidden shadow-xl text-white p-8 md:p-10 flex flex-col justify-between">
           <div class="space-y-3 max-w-lg z-10">
             <span class="inline-block px-3 py-1 bg-white text-gray-950 text-[9px] font-black uppercase tracking-widest rounded-full shadow">
@@ -30,7 +28,6 @@
           </div>
         </div>
 
-        <!-- Karta Anësore e Reklamës -->
         <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
           <div class="bg-gradient-to-br from-[#d61f43] to-red-900 rounded-3xl p-5 text-white shadow-lg flex items-center justify-between relative overflow-hidden">
             <div class="space-y-1 z-10">
@@ -58,11 +55,9 @@
       </div>
     </div>
 
-    <!-- PËRMBAJTJA KRYESORE: FILTRI MAJTAS + PRODUKTET DJATHTAS -->
     <div class="max-w-7xl mx-auto px-4 md:px-8 mt-8">
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-        
-        <!-- MENUJA MAJTAS: KATEGORITË, LOKALET DHE FILTRA TË TJERË -->
+
         <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
           <div>
             <h3 class="text-xs font-black text-gray-950 uppercase tracking-widest border-b border-gray-100 pb-3 mb-4">
@@ -86,7 +81,6 @@
             </div>
           </div>
 
-          <!-- LOKALET DINAMIKE -->
           <div>
             <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
               <h3 class="text-xs font-black text-gray-950 uppercase tracking-widest">
@@ -104,7 +98,6 @@
             </div>
           </div>
 
-          <!-- FISTËR NGA ÇMIMI (FİYAT ARALIĞI FİLTRESİ) -->
           <div class="border-t border-gray-100 pt-5">
             <h3 class="text-xs font-black text-gray-950 uppercase tracking-widest pb-3 mb-3">
               💶 ÇMIMI (€)
@@ -127,10 +120,8 @@
           </div>
         </div>
 
-        <!-- PANELI DJATHTAS: LISTA E PRODUKTEVE DHE KËRKIMI -->
         <div id="products-section" class="lg:col-span-3 space-y-6">
-          
-          <!-- Shiriti i Informacionit të Lartë dhe Siralama -->
+
           <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
               <h2 class="text-sm font-black text-gray-950 uppercase tracking-wide">{{ selectedCategory }}</h2>
@@ -138,7 +129,6 @@
             </div>
 
             <div class="flex items-center gap-3 w-full md:w-auto">
-              <!-- Sıralama Seçeneği -->
               <select 
                 v-model="sortBy" 
                 class="px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold focus:border-gray-950 outline-none cursor-pointer"
@@ -149,7 +139,6 @@
                 <option value="name">Emri: A-Z</option>
               </select>
 
-              <!-- Arama Çubuğu -->
               <input 
                 v-model="searchQuery" 
                 type="text" 
@@ -159,14 +148,12 @@
             </div>
           </div>
 
-          <!-- Kur Nuk Ka Produkte -->
           <div v-if="filteredProducts.length === 0" class="bg-white p-16 rounded-2xl border border-gray-100 shadow-sm text-center space-y-3">
             <span class="text-4xl block">🔍</span>
             <h3 class="text-xs font-black text-gray-950 uppercase">Nuk u gjet asnjë produkt</h3>
             <p class="text-[10px] text-gray-400 font-bold">Provo të ndryshosh kriteret e kërkimit ose çmimit.</p>
           </div>
 
-          <!-- Rrjeti i Kartave të Produkteve -->
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             <div 
               v-for="product in filteredProducts" 
@@ -195,7 +182,6 @@
 
               <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
                 <div class="space-y-1">
-                  <!-- MAĞAZA İSMİ ARTIK TIKLANABİLİR VE DOĞRUDAN PROFİLE GİDİYOR -->
                   <router-link 
                     :to="`/vendor-profile/${encodeURIComponent(product.shopName)}`" 
                     class="text-[9px] font-black text-gray-400 uppercase tracking-wider block hover:text-[#d61f43] transition cursor-pointer"
@@ -262,7 +248,6 @@ const dynamicBrands = computed(() => {
 const filteredProducts = computed(() => {
   let result = [...products.value]
 
-  // 1. Kategori Filtresi
   if (selectedCategory.value !== 'TË GJITHA') {
     result = result.filter(p => 
       (p.name && p.name.toUpperCase().includes(selectedCategory.value)) || 
@@ -270,12 +255,10 @@ const filteredProducts = computed(() => {
     )
   }
 
-  // 2. Marka / Lokal Filtresi
   if (selectedBrands.value.length > 0) {
     result = result.filter(p => selectedBrands.value.includes(p.shopName))
   }
 
-  // 3. Arama Çubuğu (Metin) Filtresi
   if (searchQuery.value && searchQuery.value.trim() !== '') {
     const q = searchQuery.value.toLowerCase().trim()
     result = result.filter(p => 
@@ -285,7 +268,6 @@ const filteredProducts = computed(() => {
     )
   }
 
-  // 4. Fiyat Aralığı Filtresi
   if (minPrice.value !== null && minPrice.value !== '') {
     result = result.filter(p => p.price >= Number(minPrice.value))
   }
@@ -293,7 +275,7 @@ const filteredProducts = computed(() => {
     result = result.filter(p => p.price <= Number(maxPrice.value))
   }
 
-  // 5. Sıralama (Sorting) Mantığı
+
   if (sortBy.value === 'price-asc') {
     result.sort((a, b) => a.price - b.price)
   } else if (sortBy.value === 'price-desc') {

@@ -1,8 +1,7 @@
 <template>
   <div class="min-h-screen bg-slate-50/50 py-8 px-4 md:px-6">
     <div class="max-w-4xl mx-auto bg-white p-5 md:p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
-      
-      <!-- Butonët e Zgjedhjes së Gjuhës -->
+    
       <div class="flex justify-end gap-2 mb-6">
         <button 
           v-for="langOption in ['sq', 'en']" 
@@ -14,7 +13,6 @@
         </button>
       </div>
 
-      <!-- Gjendja: Produkti nuk u gjet -->
       <div v-if="!product" class="text-center py-20 space-y-4">
         <div class="w-16 h-16 bg-rose-50 text-[#d61f43] rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-inner">
           📦
@@ -28,12 +26,9 @@
         </router-link>
       </div>
 
-      <!-- Përmbajtja e Detajeve të Produktit -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        
-        <!-- ZONA E GALERISË SË IMAZHEVE (Dizajn më i vogël) -->
+
         <div class="space-y-4">
-          <!-- Imazhi i Madh Aktiv -->
           <div class="bg-slate-100 rounded-2xl w-full max-w-[280px] mx-auto aspect-square overflow-hidden border border-slate-100 flex items-center justify-center relative group shadow-sm">
             <img 
               v-if="selectedImage" 
@@ -50,7 +45,6 @@
             </router-link>
           </div>
 
-          <!-- Parapamjet e Imazheve të Vogla (Galeria Thumbnail) -->
           <div v-if="product.images && product.images.length > 1" class="flex items-center justify-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             <button 
               v-for="(img, idx) in product.images" 
@@ -63,7 +57,6 @@
           </div>
         </div>
 
-        <!-- INFORMACIONET DHE PËRSHKRIMI I PRODUKTIT -->
         <div class="space-y-6">
           <div class="space-y-2">
             <router-link 
@@ -84,7 +77,6 @@
             </div>
           </div>
 
-          <!-- PËRSHKRIMI I PRODUKTIT -->
           <div class="space-y-2">
             <h3 class="text-[11px] font-black text-slate-900 uppercase tracking-wider">{{ t.description }}</h3>
             <p class="text-[11px] text-slate-600 leading-relaxed bg-slate-50/80 p-4 rounded-xl border border-slate-100/80 whitespace-pre-line">
@@ -92,7 +84,6 @@
             </p>
           </div>
 
-          <!-- BUTONAT -->
           <div class="flex items-center gap-3 pt-2">
             <button 
               @click="addToCartGlobal(product)"
@@ -124,9 +115,7 @@ const product = computed(() => {
 })
 
 const selectedImage = ref('')
-const currentLang = ref('sq') // Gjuha e parazgjedhur: Shqip ('sq', 'en')
-
-// Fjalori Shumëgjuhësh (Vetëm Shqip dhe Anglisht)
+const currentLang = ref('sq') 
 const translations = {
   sq: {
     notFound: 'Produkti nuk u gjet',
@@ -154,7 +143,6 @@ const translations = {
 
 const t = computed(() => translations[currentLang.value])
 
-// Zgjidh imazhin e parë si parazgjedhje kur të ngarkohet produkti
 watchEffect(() => {
   if (product.value && product.value.images && product.value.images.length > 0) {
     selectedImage.value = product.value.images[0]

@@ -2,7 +2,6 @@
   <div class="min-h-screen bg-[#f4f6f9] py-8 px-4 md:px-8">
     <div class="max-w-7xl mx-auto space-y-8">
       
-      <!-- Shiriti i Sipërm -->
       <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <span class="text-[10px] font-black bg-[#d61f43]/10 text-[#d61f43] px-2.5 py-1 rounded-md uppercase tracking-wider inline-block mb-1">
@@ -22,7 +21,6 @@
       </div>
 
       <template v-else>
-        <!-- Kartat e Avancuara të Llogaritjes Financiare (Të Ardhurat / Shpenzimet / Komisioni / Fitimi Net) -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-2">
             <span class="text-[10px] font-black uppercase text-gray-400">Qarkullimi Bruto (Të Ardhurat)</span>
@@ -42,7 +40,6 @@
           </div>
         </div>
 
-        <!-- Produktet e Shitura dhe Porositë e Dyqanit -->
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
           <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
             📦 Historiku i Shitjeve & Detajet për këtë Dyqan
@@ -108,7 +105,7 @@ const totalRevenue = computed(() => {
   return total
 })
 
-const commissionFee = computed(() => totalRevenue.value * 0.10) // 10% komisioni i platformës
-const estimatedExpense = computed(() => totalRevenue.value * 0.40) // Kostoja e vlerësuar e produktit 40%
+const commissionFee = computed(() => totalRevenue.value * 0.10) 
+const estimatedExpense = computed(() => totalRevenue.value * 0.40) 
 const netProfit = computed(() => totalRevenue.value - commissionFee.value - estimatedExpense.value)
 </script>

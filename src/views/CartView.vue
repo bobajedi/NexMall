@@ -3,8 +3,7 @@
     <h1 class="text-3xl font-black text-white">Shporta Juaj</h1>
 
     <div v-if="cart.length > 0" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      
-      <!-- ANAJSA E MAJTË: Produktet në Shportë -->
+
       <div class="lg:col-span-2 space-y-4">
         <div 
           v-for="item in cart" 
@@ -43,12 +42,10 @@
         </div>
       </div>
 
-      <!-- ANAJSA E DJATHTË: Përmbledhja e Porosisë dhe Përfundimi përmes WhatsApp -->
       <div class="lg:col-span-1">
         <div class="p-6 rounded-2xl border border-gray-800 bg-gray-900/20 backdrop-blur-sm space-y-6 sticky top-24">
           <h3 class="text-lg font-bold text-white border-b border-gray-800 pb-3">Përmbledhja e Porosisë</h3>
-          
-          <!-- Të dhënat e kontaktit të klientit (Të nevojshme për porosinë përmes WhatsApp) -->
+
           <div class="space-y-3">
             <label class="block text-xs font-bold uppercase text-gray-400 tracking-wider">Shënimet e Dërgesës</label>
             <input v-model="customerName" type="text" placeholder="Emri dhe Mbiemri" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition" />
@@ -70,7 +67,6 @@
             </div>
           </div>
 
-          <!-- Butoni i WhatsApp për Porosi Live -->
           <button 
             @click="handleWhatsAppCheckout" 
             class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 active:scale-[0.99]"
@@ -86,7 +82,6 @@
 
     </div>
 
-    <!-- Ekrani i Shportës së Zbrazët -->
     <div v-else class="text-center py-20 border border-dashed border-gray-800 rounded-3xl bg-gray-900/5 max-w-xl mx-auto">
       <span class="text-6xl">🛒</span>
       <h2 class="text-xl font-bold text-white mt-6">Shporta juaj është e zbrazët</h2>
@@ -128,7 +123,6 @@ const removeItem = (id, variant) => {
   saveCartToStorage()
 }
 
-// Motorri i Porosisë WhatsApp
 const handleWhatsAppCheckout = () => {
   if (!customerName.value || !customerCity.value) {
     alert('Ju lutem plotësoni emrin dhe qytetin tuaj!')

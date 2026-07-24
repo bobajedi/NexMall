@@ -1,8 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 py-8 px-4 md:px-8">
     <div class="max-w-4xl mx-auto space-y-8">
-      
-      <!-- KRYETITULLI -->
+
       <div class="flex items-center justify-between bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         <div>
           <h1 class="text-2xl font-black text-gray-950 uppercase tracking-tight">🛒 PËRFUNDO POROSINË</h1>
@@ -24,7 +23,6 @@
 
       <div v-else class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         
-        <!-- ZONA E FORMULARIT -->
         <div class="md:col-span-7 bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
           <h2 class="text-base font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3">
             📍 TË DHËNAT E DORËZIMIT
@@ -83,7 +81,6 @@
           </form>
         </div>
 
-        <!-- PËRMBLEDHJA E SHPORTËS -->
         <div class="md:col-span-5 bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
           <h2 class="text-base font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3">
             📦 PËRMBLEDHJA E SHPORTËS

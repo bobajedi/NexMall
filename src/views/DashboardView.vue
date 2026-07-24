@@ -2,7 +2,6 @@
   <div class="min-h-screen bg-[#f4f6f9] py-8 px-4 md:px-8">
     <div class="max-w-7xl mx-auto space-y-8">
       
-      <!-- Paneli i Sipërm / Profili i Panelit -->
       <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <span class="text-[10px] font-black bg-[#d61f43]/10 text-[#d61f43] px-2.5 py-1 rounded-md uppercase tracking-wider inline-block mb-1">
@@ -14,7 +13,6 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <!-- Butoni i Menaxhimit të Partnerëve nëse është Administrator -->
           <router-link 
             v-if="currentUser?.role === 'admin' || currentUser?.email === 'admin@shopaz.com'" 
             to="/admin-partners" 
@@ -32,10 +30,8 @@
         </div>
       </div>
 
-      <!-- Grila e Menaxhimit të Shitësit (Shtimi i Produkteve & Porositë) -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- Paneli i Majtë: Formuari i Shtimit të Produktit të Ri -->
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm h-fit space-y-4">
           <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
             ➕ Shto Produkt të Ri
@@ -69,7 +65,6 @@
           </form>
         </div>
 
-        <!-- Paneli i Djathtë: Porositë e Ardhura & Produktet -->
         <div class="lg:col-span-2 space-y-6">
           <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">

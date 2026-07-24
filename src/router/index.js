@@ -8,7 +8,7 @@ import WishlistView from '../views/WishlistView.vue'
 import ProductDetailView from '../views/ProductDetailView.vue'
 import AdminVendorDetailView from '../views/AdminVendorDetailView.vue'
 import SellerSettings from '../views/SellerSettings.vue'
-import VendorProfileView from '../views/VendorProfileView.vue' // YENİ IMPORT
+import VendorProfileView from '../views/VendorProfileView.vue' 
 
 const routes = [
   { path: '/', name: 'home', component: HomeView },
@@ -21,7 +21,7 @@ const routes = [
   { path: '/admin/vendor/:email', name: 'admin-vendor-detail', component: AdminVendorDetailView },
   { path: '/wishlist', name: 'wishlist', component: WishlistView },
   { path: '/product/:id', name: 'product-detail', component: ProductDetailView },
-  { path: '/vendor-profile/:shopName', name: 'vendor-profile', component: VendorProfileView } // YENİ ROTA
+  { path: '/vendor-profile/:shopName', name: 'vendor-profile', component: VendorProfileView } 
 ]
 
 const router = createRouter({

@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export const useNexMallStore = defineStore('nexMall', () => {
-  // Menaxhimi i Gjendjes (State)
   const products = ref(JSON.parse(localStorage.getItem('nexmall_products')) || [])
   const cart = ref(JSON.parse(localStorage.getItem('nexmall_cart')) || [])
   const compareList = ref([])
@@ -15,10 +14,8 @@ export const useNexMallStore = defineStore('nexMall', () => {
   const notifications = ref([])
   const searchHistory = ref(JSON.parse(localStorage.getItem('nexmall_search_history')) || [])
 
-  // Kurset e Valutave
   const rates = { EUR: 1, USD: 1.09, TRY: 36.5 }
 
-  // Njoftimet (Toast)
   const triggerToast = (message, type = 'success') => {
     const id = Date.now()
     notifications.value.push({ id, message, type })
@@ -27,14 +24,12 @@ export const useNexMallStore = defineStore('nexMall', () => {
     }, 2500)
   }
 
-  // Formatuesi Dinamik i Çmimit
   const formatPrice = (priceInEur) => {
     const converted = priceInEur * rates[currency.value]
     const symbols = { EUR: '€', USD: '$', TRY: '₺' }
     return `${converted.toFixed(2)} ${symbols[currency.value]}`
   }
 
-  // Filtrimi Drejtpërdrejtë dhe Motorri i Kërkimit NexMall
   const filteredProducts = computed(() => {
     return products.value.filter(product => {
       const titleSafe = product.title ? product.title.toLowerCase() : ''
@@ -49,7 +44,6 @@ export const useNexMallStore = defineStore('nexMall', () => {
     })
   })
 
-  // Funksionet e Shportës
   const addToCart = (product) => {
     const existing = cart.value.find(item => item.id === product.id)
     if (existing) {
@@ -63,7 +57,6 @@ export const useNexMallStore = defineStore('nexMall', () => {
 
   const saveCart = () => localStorage.setItem('nexmall_cart', JSON.stringify(cart.value))
 
-  // Lista e Krahasimit (Maksimumi 3 Produkte)
   const toggleCompare = (product) => {
     const index = compareList.value.findIndex(p => p.id === product.id)
     if (index > -1) {
@@ -79,7 +72,6 @@ export const useNexMallStore = defineStore('nexMall', () => {
     }
   }
 
-  // Sistemi i Kuponëve të Zbritjes
   const applyCoupon = (code) => {
     if (code.toUpperCase() === 'NEX20') {
       activeCoupon.value = { code: 'NEX20', discount: 0.20 }
@@ -93,7 +85,6 @@ export const useNexMallStore = defineStore('nexMall', () => {
   const cartSubtotal = computed(() => cart.value.reduce((sum, item) => sum + (item.price * item.quantity), 0))
   const cartTotal = computed(() => activeCoupon.value ? cartSubtotal.value * (1 - activeCoupon.value.discount) : cartSubtotal.value)
 
-  // Gjeneruesi i 1 Produkteve Testuese (Mock Data)
   const generateMockData = () => {
     const categories = ['Teknologji', 'Veshje', 'Shtëpi & Jeta', 'Aksesuar']
     const mockTitles = ['Kufje Pa Fije X', 'Orë e Mençur Premium', 'Çantë Shpine Minimaliste', 'Tastierë Mekanike Pro', 'Gotë Kafeje prej Xhami']
@@ -114,7 +105,6 @@ export const useNexMallStore = defineStore('nexMall', () => {
     triggerToast('15 Produkte Testuese u Gjeneruan me Sukses!')
   }
 
-  // Regjistrimi i Historikut të Kërkimit
   const addSearchHistory = (query) => {
     if (!query.trim()) return
     searchHistory.value = [query, ...searchHistory.value.filter(h => h !== query)].slice(0, 5)

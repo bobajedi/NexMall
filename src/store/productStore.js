@@ -6,10 +6,9 @@ export const activeShopName = ref('')
 export const activeVendorProfile = ref(null)
 export const adminReplyInputs = ref({})
 
-// Gelişmiş Arama ve Filtreleme State'leri
 export const searchQuery = ref('')
 export const selectedCategory = ref('TË GJITHA')
-export const sortBy = ref('default') // 'default', 'price-asc', 'price-desc', 'name'
+export const sortBy = ref('default')
 export const minPrice = ref(null)
 export const maxPrice = ref(null)
 
@@ -73,16 +72,13 @@ export const products = ref(savedProducts ? JSON.parse(savedProducts) : [
   }
 ])
 
-// Filtrelenmiş ve Sıralanmış Ürünler (Computed)
 export const filteredProducts = computed(() => {
   let result = [...products.value]
 
-  // 1. Kategori Filtresi
   if (selectedCategory.value && selectedCategory.value !== 'TË GJITHA') {
     result = result.filter(p => p.category?.toUpperCase() === selectedCategory.value.toUpperCase())
   }
 
-  // 2. Metin / Arama Filtresi (İsim, Açıklama veya Mağaza Adına göre)
   if (searchQuery.value && searchQuery.value.trim() !== '') {
     const query = searchQuery.value.toLowerCase().trim()
     result = result.filter(p => 
@@ -92,7 +88,6 @@ export const filteredProducts = computed(() => {
     )
   }
 
-  // 3. Fiyat Aralığı Filtresi
   if (minPrice.value !== null && minPrice.value !== '') {
     result = result.filter(p => p.price >= Number(minPrice.value))
   }
@@ -100,7 +95,6 @@ export const filteredProducts = computed(() => {
     result = result.filter(p => p.price <= Number(maxPrice.value))
   }
 
-  // 4. Sıralama (Sorting)
   if (sortBy.value === 'price-asc') {
     result.sort((a, b) => a.price - b.price)
   } else if (sortBy.value === 'price-desc') {

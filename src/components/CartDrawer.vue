@@ -1,18 +1,15 @@
 <template>
   <div v-if="isCartOpen" class="fixed inset-0 z-50 overflow-hidden">
-    <!-- Sfondi i Zezë (Arka Plan Karartma) -->
     <div @click="isCartOpen = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"></div>
 
     <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
       <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col">
-        
-        <!-- TITULLI -->
+
         <div class="p-6 border-b border-gray-100 flex items-center justify-between">
           <h2 class="text-base font-black text-gray-950 uppercase tracking-wider">SHPORTA E BLERJEVE</h2>
           <button @click="isCartOpen = false" class="text-gray-400 hover:text-gray-900 p-2 font-black text-sm">✕</button>
         </div>
 
-        <!-- LISTA E PRODUKTEVE -->
         <div class="flex-1 overflow-y-auto p-6 space-y-4">
           <div v-if="cart.length === 0" class="text-center py-16 space-y-3">
             <span class="text-4xl block">🛒</span>
@@ -40,7 +37,6 @@
           </div>
         </div>
 
-        <!-- INFORMACIONI I FUNDIT & VAZHDO TE PAGESA -->
         <div v-if="cart.length > 0" class="p-6 border-t border-gray-100 space-y-4 bg-gray-50">
           <div class="flex justify-between items-center text-sm font-black text-gray-950">
             <span>TOTALI</span>

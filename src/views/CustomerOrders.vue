@@ -1,8 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#f4f6f9] py-8 px-4 md:px-8">
     <div class="max-w-4xl mx-auto space-y-6">
-      
-      <!-- Zona e Titullit -->
+
       <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex justify-between items-center">
         <div>
           <span class="text-[10px] font-black bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md uppercase tracking-wider inline-block mb-1">
@@ -15,7 +14,6 @@
         </router-link>
       </div>
 
-      <!-- Lista e Porosive -->
       <div v-if="myOrders.length > 0" class="space-y-4">
         <div v-for="order in myOrders" :key="order.id" class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-100 pb-4">
@@ -33,7 +31,6 @@
             </div>
           </div>
 
-          <!-- Produktet -->
           <div class="space-y-2">
             <div v-for="item in order.items" :key="item.id" class="flex justify-between items-center text-xs font-bold text-gray-700 bg-gray-50 p-3 rounded-2xl">
               <span>{{ item.name }} ({{ item.quantity }} Copë)</span>

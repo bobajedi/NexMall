@@ -2,7 +2,6 @@
   <div class="min-h-screen bg-[#f4f6f9] py-8 px-4 md:px-8">
     <div class="max-w-7xl mx-auto space-y-8">
       
-      <!-- Shiriti i Sipërm / Paneli i Profilit -->
       <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <span class="text-[10px] font-black bg-[#d61f43]/10 text-[#d61f43] px-2.5 py-1 rounded-md uppercase tracking-wider inline-block mb-1">
@@ -23,7 +22,6 @@
         </div>
       </div>
 
-      <!-- Zona e Përmbajtjes -->
       <div class="grid grid-cols-1 gap-8">
         
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
@@ -66,7 +64,6 @@
                 <span class="text-[10px] text-gray-400 font-mono block">Data e Aplikimit: {{ partner.date }}</span>
               </div>
 
-              <!-- Butonat e Aksionit -->
               <div class="flex gap-2 w-full md:w-auto">
                 <button 
                   @click="handleStatus(partner.id, 'approved')" 
@@ -97,7 +94,6 @@ import { partnerApplications, updatePartnerStatus } from '../store/productStore'
 const handleStatus = (id, status) => {
   const success = updatePartnerStatus(id, status)
   if (success) {
-    // Store aktivizohet për përditësimin reaktiv të faqes
   }
 }
 </script>

@@ -21,6 +21,42 @@
       </div>
 
       <template v-else>
+        <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+          <div class="flex items-center gap-4">
+            <img :src="vendor?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'" class="w-16 h-16 rounded-2xl object-cover border border-gray-200" />
+            <div>
+              <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider">📋 Profili i Plotë i Shitësit</h2>
+              <p class="text-[11px] font-bold text-gray-500">{{ vendor?.name || 'Shitës i panjohur' }}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div class="rounded-2xl bg-gray-50 p-3">
+              <p class="text-[10px] uppercase text-gray-400 font-black">Email</p>
+              <p class="mt-1 font-bold text-gray-800">{{ vendor?.email || '—' }}</p>
+            </div>
+            <div class="rounded-2xl bg-gray-50 p-3">
+              <p class="text-[10px] uppercase text-gray-400 font-black">Telefoni</p>
+              <p class="mt-1 font-bold text-gray-800">{{ vendor?.shopPhone || vendor?.phone || '—' }}</p>
+            </div>
+            <div class="rounded-2xl bg-gray-50 p-3">
+              <p class="text-[10px] uppercase text-gray-400 font-black">Adresa</p>
+              <p class="mt-1 font-bold text-gray-800">{{ vendor?.shopAddress || vendor?.address || '—' }}</p>
+            </div>
+            <div class="rounded-2xl bg-gray-50 p-3">
+              <p class="text-[10px] uppercase text-gray-400 font-black">WhatsApp</p>
+              <p class="mt-1 font-bold text-gray-800">{{ vendor?.whatsappNumber || '—' }}</p>
+            </div>
+            <div class="rounded-2xl bg-gray-50 p-3">
+              <p class="text-[10px] uppercase text-gray-400 font-black">Kategoria</p>
+              <p class="mt-1 font-bold text-gray-800">{{ vendor?.shopCategory || '—' }}</p>
+            </div>
+            <div class="rounded-2xl bg-gray-50 p-3">
+              <p class="text-[10px] uppercase text-gray-400 font-black">Statusi</p>
+              <p class="mt-1 font-bold text-gray-800 uppercase">{{ vendor?.status || '—' }}</p>
+            </div>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-2">
             <span class="text-[10px] font-black uppercase text-gray-400">Qarkullimi Bruto (Të Ardhurat)</span>
@@ -45,23 +81,23 @@
             📦 Historiku i Shitjeve & Detajet për këtë Dyqan
           </h2>
 
-          <div v-if="vendorOrders.length === 0" class="text-center py-8 text-gray-400 text-xs font-bold uppercase">
+          <div v-if="vendorOrderGroups.length === 0" class="text-center py-8 text-gray-400 text-xs font-bold uppercase">
             Nuk ka pasur ende shitje nga ky dyqan.
           </div>
 
           <div v-else class="space-y-4">
-            <div v-for="order in vendorOrders" :key="order.id" class="border border-gray-100 bg-gray-50 rounded-2xl p-4 space-y-3">
+            <div v-for="group in vendorOrderGroups" :key="group.order.id" class="border border-gray-100 bg-gray-50 rounded-2xl p-4 space-y-3">
               <div class="flex justify-between items-center border-b border-gray-200/60 pb-2">
-                <span class="text-xs font-mono font-black text-gray-900">ID e Porosisë: {{ order.id }}</span>
-                <span class="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded-md uppercase">{{ order.date }}</span>
+                <span class="text-xs font-mono font-black text-gray-900">ID e Porosisë: {{ group.order.id }}</span>
+                <span class="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded-md uppercase">{{ group.order.date }}</span>
               </div>
               <div class="text-xs text-gray-600 font-bold space-y-1">
-                <p>👤 Klienti: {{ order.customerName }} | 📞 {{ order.customerPhone }}</p>
-                <p>📍 Adresa: {{ order.customerAddress }}</p>
+                <p>👤 Klienti: {{ group.order.customerName }} | 📞 {{ group.order.customerPhone }}</p>
+                <p>📍 Adresa: {{ group.order.customerAddress }}</p>
                 <div class="bg-white p-3 rounded-xl border border-gray-100 mt-2 space-y-1">
                   <p class="text-[10px] uppercase text-gray-400 font-black">Produktet e Shitura:</p>
                   <ul class="list-disc list-inside">
-                    <li v-for="item in order.items.filter(i => i.shopName === vendor.shopName)" :key="item.id">
+                    <li v-for="item in group.items" :key="group.order.id + '-' + item.id">
                       {{ item.name }} - {{ item.quantity }} Copë (€{{ item.price }})
                     </li>
                   </ul>
@@ -82,30 +118,37 @@ import { useRoute } from 'vue-router'
 import { users, orders } from '../store/productStore'
 
 const route = useRoute()
-const vendorEmail = route.params.email
+const vendorEmail = computed(() => {
+  const rawEmail = route.params.email || ''
+  return decodeURIComponent(String(rawEmail)).trim().toLowerCase()
+})
 
 const vendor = computed(() => {
-  return users.value.find(u => u.email === vendorEmail)
+  if (!vendorEmail.value) return null
+  return users.value.find(u => u.email?.toLowerCase() === vendorEmail.value) || users.value.find(u => u.shopName?.toLowerCase() === vendorEmail.value)
 })
 
 const vendorOrders = computed(() => {
   if (!vendor.value) return []
-  return orders.value.filter(order => order.items.some(item => item.shopName === vendor.value.shopName))
+  return orders.value.filter(order => Array.isArray(order.items) && order.items.some(item => item.shopName === vendor.value.shopName))
+})
+
+const vendorOrderGroups = computed(() => {
+  if (!vendor.value) return []
+
+  return vendorOrders.value.map(order => ({
+    order,
+    items: order.items.filter(item => item.shopName === vendor.value.shopName)
+  })).filter(group => group.items.length > 0)
 })
 
 const totalRevenue = computed(() => {
-  let total = 0
-  vendorOrders.value.forEach(order => {
-    order.items.forEach(item => {
-      if (item.shopName === vendor.value?.shopName) {
-        total += item.price * item.quantity
-      }
-    })
-  })
-  return total
+  return vendorOrderGroups.value.reduce((total, group) => {
+    return total + group.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  }, 0)
 })
 
-const commissionFee = computed(() => totalRevenue.value * 0.10) 
-const estimatedExpense = computed(() => totalRevenue.value * 0.40) 
+const commissionFee = computed(() => totalRevenue.value * 0.10)
+const estimatedExpense = computed(() => totalRevenue.value * 0.40)
 const netProfit = computed(() => totalRevenue.value - commissionFee.value - estimatedExpense.value)
 </script>

@@ -164,7 +164,7 @@
     <CartDrawer />
 
     <!-- Ana İçerik Alanı -->
-    <main class="relative z-10 flex-1">
+    <main class="relative flex-1">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" />

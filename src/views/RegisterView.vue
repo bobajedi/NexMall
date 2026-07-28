@@ -78,18 +78,77 @@
           </div>
         </div>
 
-        <div v-if="form.role === 'seller'" class="space-y-1.5">
-          <label class="block text-[10px] font-black text-[#d61f43] uppercase tracking-wider">
-            {{ lang === 'al' ? 'Emri i Dyqanit (Shop Name)' : 'Shop Name' }}
-          </label>
-          <input 
-            v-model="form.shopName" 
-            type="text" 
-            required 
-            placeholder="Prizren Tech, Diva Butik..." 
-            class="w-full px-4 py-2.5 rounded-xl border border-[#d61f43]/30 focus:border-gray-900 focus:ring-0 text-xs font-bold uppercase transition bg-red-50/30 focus:bg-white" 
-          />
-        </div>
+        <!-- Sadece Shitës (Seller) Seçildiğinde Görünecek Ekstra Bilgiler -->
+        <template v-if="form.role === 'seller'">
+          <div class="space-y-1.5">
+            <label class="block text-[10px] font-black text-[#d61f43] uppercase tracking-wider">
+              {{ lang === 'al' ? 'Emri i Dyqanit (Shop Name)' : 'Shop Name' }}
+            </label>
+            <input 
+              v-model="form.shopName" 
+              type="text" 
+              required 
+              placeholder="Prizren Tech, Diva Butik..." 
+              class="w-full px-4 py-2.5 rounded-xl border border-[#d61f43]/30 focus:border-gray-900 focus:ring-0 text-xs font-bold uppercase transition bg-red-50/30 focus:bg-white" 
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[10px] font-black text-[#d61f43] uppercase tracking-wider">
+              {{ lang === 'al' ? 'Kategoria e Dyqanit' : 'Shop Category' }}
+            </label>
+            <select 
+              v-model="form.shopCategory" 
+              required 
+              class="w-full px-4 py-2.5 rounded-xl border border-[#d61f43]/30 focus:border-gray-900 focus:ring-0 text-xs font-bold uppercase transition bg-red-50/30 focus:bg-white"
+            >
+              <option disabled value="">{{ lang === 'al' ? 'Zgjidh kategorinë...' : 'Select category...' }}</option>
+              <option value="electronics">{{ lang === 'al' ? 'Elektronikë & Teknologji' : 'Electronics & Tech' }}</option>
+              <option value="clothing">{{ lang === 'al' ? 'Veshje & Modë' : 'Clothing & Fashion' }}</option>
+              <option value="optics">{{ lang === 'al' ? 'Optikë & Syze' : 'Optics & Eyewear' }}</option>
+              <option value="cosmetics">{{ lang === 'al' ? 'Kozmetikë & Bukuri' : 'Cosmetics & Beauty' }}</option>
+              <option value="home">{{ lang === 'al' ? 'Shtëpi & Mobilje' : 'Home & Furniture' }}</option>
+              <option value="other">{{ lang === 'al' ? 'Të tjera' : 'Other' }}</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[10px] font-black text-[#d61f43] uppercase tracking-wider">
+              {{ lang === 'al' ? 'Adresa e Dyqanit' : 'Shop Address' }}
+            </label>
+            <input 
+              v-model="form.shopAddress" 
+              type="text" 
+              required 
+              placeholder="Rruga e Adem Jasharit, Prizren" 
+              class="w-full px-4 py-2.5 rounded-xl border border-[#d61f43]/30 focus:border-gray-900 focus:ring-0 text-xs font-bold uppercase transition bg-red-50/30 focus:bg-white" 
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black uppercase tracking-wider text-[#d61f43] block">
+                {{ lang === 'al' ? 'Telefoni i Dyqanit' : 'Phone Number' }}
+              </label>
+              <input 
+                v-model="form.shopPhone" 
+                type="tel" 
+                required 
+                placeholder="+383 44 ..." 
+                class="w-full px-4 py-2.5 rounded-xl border border-[#d61f43]/30 focus:border-gray-900 focus:ring-0 text-xs font-bold transition bg-red-50/30 focus:bg-white" 
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black uppercase tracking-wider text-[#d61f43] block">WhatsApp</label>
+              <input 
+                v-model="form.whatsappNumber" 
+                type="tel" 
+                placeholder="+383 44 ..." 
+                class="w-full px-4 py-2.5 rounded-xl border border-[#d61f43]/30 focus:border-gray-900 focus:ring-0 text-xs font-bold transition bg-red-50/30 focus:bg-white" 
+              />
+            </div>
+          </div>
+        </template>
 
         <div class="space-y-1.5">
           <label class="text-[10px] font-black uppercase tracking-wider text-gray-400 block">E-Mail</label>
@@ -151,6 +210,10 @@ const form = ref({
   password: '',
   role: 'customer',
   shopName: '',
+  shopCategory: '',
+  shopAddress: '',
+  shopPhone: '',
+  whatsappNumber: '',
   avatar: ''
 })
 
@@ -173,6 +236,10 @@ const handleRegister = () => {
     password: form.value.password,
     role: form.value.role === 'seller' ? 'vendor' : 'customer',
     shopName: form.value.role === 'seller' ? form.value.shopName : '',
+    shopCategory: form.value.role === 'seller' ? form.value.shopCategory : '',
+    shopAddress: form.value.role === 'seller' ? form.value.shopAddress : '',
+    shopPhone: form.value.role === 'seller' ? form.value.shopPhone : '',
+    whatsappNumber: form.value.role === 'seller' ? form.value.whatsappNumber : '',
     avatar: form.value.avatar
   })
 

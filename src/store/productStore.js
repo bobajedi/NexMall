@@ -276,6 +276,10 @@ export const updatePartnerStatus = (id, status) => {
           name: partner.contactName || 'Partner',
           role: 'vendor',
           shopName: partner.companyName || 'DYQAN I RI PARTNER',
+          shopCategory: partner.shopCategory || '',
+          shopAddress: partner.shopAddress || '',
+          shopPhone: partner.shopPhone || '',
+          whatsappNumber: partner.whatsappNumber || '',
           avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
           status: 'approved'
         }
@@ -283,6 +287,10 @@ export const updatePartnerStatus = (id, status) => {
         saveUsersToStorage()
       } else {
         existingUser.status = 'approved'
+        existingUser.shopCategory = existingUser.shopCategory || partner.shopCategory || ''
+        existingUser.shopAddress = existingUser.shopAddress || partner.shopAddress || ''
+        existingUser.shopPhone = existingUser.shopPhone || partner.shopPhone || ''
+        existingUser.whatsappNumber = existingUser.whatsappNumber || partner.whatsappNumber || ''
         saveUsersToStorage()
       }
     }
@@ -301,6 +309,10 @@ export const approveVendor = (email) => {
   const user = users.value.find(u => u.email.toLowerCase() === email.toLowerCase())
   if (user) {
     user.status = 'approved'
+    user.shopCategory = user.shopCategory || partner?.shopCategory || ''
+    user.shopAddress = user.shopAddress || partner?.shopAddress || ''
+    user.shopPhone = user.shopPhone || partner?.shopPhone || ''
+    user.whatsappNumber = user.whatsappNumber || partner?.whatsappNumber || ''
     saveUsersToStorage()
     return true
   }
@@ -374,6 +386,10 @@ export const registerUser = (userData) => {
     name: userData.name || 'Shitës',
     role: userData.role || 'vendor',
     shopName: userData.shopName || userData.name || 'DYQAN I RI',
+    shopCategory: userData.shopCategory || '',
+    shopAddress: userData.shopAddress || '',
+    shopPhone: userData.shopPhone || '',
+    whatsappNumber: userData.whatsappNumber || '',
     avatar: userData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
     status: userData.role === 'customer' ? 'approved' : 'pending' 
   }
@@ -387,7 +403,11 @@ export const registerUser = (userData) => {
       companyName: newUser.shopName,
       contactName: newUser.name,
       email: newUser.email,
-      phone: '+383 44 000 000',
+      phone: newUser.shopPhone || '+383 44 000 000',
+      shopCategory: newUser.shopCategory || '',
+      shopAddress: newUser.shopAddress || '',
+      shopPhone: newUser.shopPhone || '',
+      whatsappNumber: newUser.whatsappNumber || '',
       message: 'Regjistrimi i shitësit u krijua direkt përmes platformës.',
       status: 'pending',
       date: new Date().toLocaleDateString('sq-AL')

@@ -1,5 +1,6 @@
 <script>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
   currentUser, 
   products, 
@@ -11,6 +12,7 @@ import {
   users, 
   saveUsersToStorage, 
   approveVendor, 
+  partnerApplications,
   currentLang,
   activeModal,
   activeShopName,
@@ -28,6 +30,7 @@ export default {
   name: 'VendorDashboard',
   setup() {
     const lang = currentLang
+    const router = useRouter()
 
     const viewingShopName = ref(null)
 
@@ -76,8 +79,26 @@ export default {
     })
 
     const pendingVendors = computed(() => {
-      return users.value.filter(u => u.role === 'vendor' && u.status === 'pending')
+      return users.value
+        .filter(u => u.role === 'vendor' && u.status === 'pending')
+        .map(user => {
+          const partnerApp = partnerApplications.value.find(p => p.email?.toLowerCase() === user.email?.toLowerCase())
+          return {
+            ...user,
+            shopName: user.shopName || partnerApp?.companyName || '',
+            name: user.name || partnerApp?.contactName || '',
+            shopCategory: user.shopCategory || partnerApp?.shopCategory || '',
+            shopAddress: user.shopAddress || partnerApp?.shopAddress || '',
+            shopPhone: user.shopPhone || partnerApp?.shopPhone || partnerApp?.phone || '',
+            phone: user.shopPhone || partnerApp?.shopPhone || partnerApp?.phone || '',
+            address: user.shopAddress || partnerApp?.shopAddress || '',
+            whatsappNumber: user.whatsappNumber || partnerApp?.whatsappNumber || ''
+          }
+        })
     })
+
+    const usersPanelCollapsed = ref(true)
+    const supportTicketsCollapsed = ref(true)
 
     const vendorTickets = computed(() => {
       if (!currentUser.value) return []
@@ -149,12 +170,23 @@ export default {
       activeVendorProfile.value = user
     }
 
+    const returnToAdminPanel = () => {
+      viewingShopName.value = null
+      activeVendorProfile.value = currentUser.value ? { ...currentUser.value } : null
+    }
+
     const rejectVendor = (email) => {
       const index = users.value.findIndex(u => u.email.toLowerCase() === email.toLowerCase())
       if (index > -1) {
         users.value.splice(index, 1)
         saveUsersToStorage()
       }
+    }
+
+    const openVendorProfile = (vendor) => {
+      if (!vendor?.email) return
+      activeModal.value = null
+      router.push({ name: 'admin-vendor-detail', params: { email: encodeURIComponent(vendor.email) } })
     }
 
     const handleDeleteUser = (email) => {
@@ -223,6 +255,8 @@ export default {
       totalEarnings,
       pendingVendors,
       vendorTickets,
+      usersPanelCollapsed,
+      supportTicketsCollapsed,
       tickets,
       users,
       lang,
@@ -232,6 +266,8 @@ export default {
       handleDeleteProduct,
       updateOrderStatus,
       inspectUserShop,
+      returnToAdminPanel,
+      openVendorProfile,
       approveVendor,
       rejectVendor,
       handleDeleteUser,
@@ -275,7 +311,7 @@ export default {
         </div>
 
         <div class="flex items-center gap-3">
-          <button v-if="viewingShopName" @click="viewingShopName = null" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-black uppercase rounded-xl transition shadow-sm">
+          <button v-if="viewingShopName" @click="returnToAdminPanel" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-black uppercase rounded-xl transition shadow-sm">
             {{ lang === 'en' ? '← Back to Admin Panel' : '← Kthehu te Paneli i Adminit' }}
           </button>
           <router-link to="/" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-black uppercase rounded-xl transition">
@@ -379,51 +415,89 @@ export default {
         </div>
 
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
-          <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
-            💬 {{ lang === 'en' ? 'Vendor Support Tickets & Chat Replies' : 'Kërkesat e Mbështetjes së Shitësve dhe Përgjigjja e Bisedës' }}
-          </h2>
-          <div v-if="tickets.length > 0" class="space-y-4">
-            <div v-for="t in tickets" :key="t.id" class="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
-              <div class="flex justify-between items-center text-xs font-black">
-                <span class="text-gray-900 uppercase">👤 {{ t.senderName }} (<span class="text-[#d61f43]">{{ t.shopName }}</span>) — {{ lang === 'en' ? 'Subject:' : 'Subjekti:' }} {{ t.subject }}</span>
-                <span class="text-[10px] text-gray-400 font-mono">{{ t.date }}</span>
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2 sm:border-b-0 sm:pb-0">
+              💬 {{ lang === 'en' ? 'Vendor Support Tickets & Chat Replies' : 'Kërkesat e Mbështetjes së Shitësve dhe Përgjigjja e Bisedës' }}
+            </h2>
+            <button @click="supportTicketsCollapsed = !supportTicketsCollapsed" class="rounded-full border border-gray-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-wider text-gray-700 transition hover:border-gray-300 hover:bg-gray-50">
+              {{ supportTicketsCollapsed ? (lang === 'en' ? 'Expand Tickets' : 'Zgjeroni Kërkesat') : (lang === 'en' ? 'Collapse Tickets' : 'Mbyll Kërkesat') }}
+            </button>
+          </div>
+
+          <div v-if="supportTicketsCollapsed" class="rounded-3xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-[10px] uppercase tracking-[0.28em] text-gray-500">{{ lang === 'en' ? 'Support tickets are collapsed to keep the admin panel light.' : 'Kërkesat e mbështetjes janë mbyllur për të mbajtur panelin e adminit më të lehtë.' }}</p>
+                <p class="mt-2 text-2xl font-black text-slate-900">{{ tickets.length }} {{ lang === 'en' ? 'tickets hidden' : 'kërkesa të fshehura' }}</p>
               </div>
-              <p class="text-xs text-gray-700 bg-white p-3 rounded-xl border border-gray-200/60 font-medium">
-                {{ lang === 'en' ? 'Vendor Message:' : 'Mesazhi i Shitësit:' }} {{ t.message }}
+              <p class="text-xs text-gray-500 max-w-xl">
+                {{ lang === 'en' ? 'Open this section only when you need to answer or review support tickets, so the page stays fast with many records.' : 'Hapni këtë seksion vetëm kur të duhet të përgjigjeni ose rishikoni kërkesat e mbështetjes, në mënyrë që faqja të qëndrojë e shpejtë me shumë të dhëna.' }}
               </p>
-
-              <div v-if="t.adminReply" class="bg-blue-50/70 p-3 rounded-xl border border-blue-100 text-xs text-blue-900 font-medium">
-                <span class="font-black uppercase block text-[10px] text-blue-600 mb-0.5">
-                  {{ lang === 'en' ? 'Admin Reply:' : 'Përgjigjja e Adminit:' }}
-                </span>
-                {{ t.adminReply }}
-              </div>
-
-              <div class="flex gap-2 pt-1">
-                <input 
-                  v-model="adminReplyInputs[t.id]" 
-                  type="text" 
-                  :placeholder="lang === 'en' ? 'Write a reply to the vendor...' : 'Shkruaj përgjigje për shitësin...'" 
-                  class="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none focus:border-gray-900"
-                />
-                <button @click="handleAdminReply(t.id)" class="px-4 py-2 bg-gray-950 hover:bg-gray-800 text-white font-black text-xs uppercase rounded-xl transition">
-                  {{ lang === 'en' ? 'Send ✉️' : 'Dërgo ✉️' }}
-                </button>
-              </div>
             </div>
           </div>
-          <div v-else class="text-center py-4 text-xs font-bold text-gray-400 uppercase">
-            {{ lang === 'en' ? 'No active support tickets found.' : 'Nuk ka kërkesa aktive mbështetjeje.' }}
+
+          <div v-if="!supportTicketsCollapsed" class="space-y-4">
+            <div v-if="tickets.length > 0" class="space-y-4">
+              <div v-for="t in tickets" :key="t.id" class="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+                <div class="flex justify-between items-center text-xs font-black">
+                  <span class="text-gray-900 uppercase">👤 {{ t.senderName }} (<span class="text-[#d61f43]">{{ t.shopName }}</span>) — {{ lang === 'en' ? 'Subject:' : 'Subjekti:' }} {{ t.subject }}</span>
+                  <span class="text-[10px] text-gray-400 font-mono">{{ t.date }}</span>
+                </div>
+                <p class="text-xs text-gray-700 bg-white p-3 rounded-xl border border-gray-200/60 font-medium">
+                  {{ lang === 'en' ? 'Vendor Message:' : 'Mesazhi i Shitësit:' }} {{ t.message }}
+                </p>
+
+                <div v-if="t.adminReply" class="bg-blue-50/70 p-3 rounded-xl border border-blue-100 text-xs text-blue-900 font-medium">
+                  <span class="font-black uppercase block text-[10px] text-blue-600 mb-0.5">
+                    {{ lang === 'en' ? 'Admin Reply:' : 'Përgjigjja e Adminit:' }}
+                  </span>
+                  {{ t.adminReply }}
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                  <input 
+                    v-model="adminReplyInputs[t.id]" 
+                    type="text" 
+                    :placeholder="lang === 'en' ? 'Write a reply to the vendor...' : 'Shkruaj përgjigjje për shitësin...'" 
+                    class="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none focus:border-gray-900"
+                  />
+                  <button @click="handleAdminReply(t.id)" class="px-4 py-2 bg-gray-950 hover:bg-gray-800 text-white font-black text-xs uppercase rounded-xl transition">
+                    {{ lang === 'en' ? 'Send ✉️' : 'Dërgo ✉️' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center py-4 text-xs font-bold text-gray-400 uppercase">
+              {{ lang === 'en' ? 'No active support tickets found.' : 'Nuk ka kërkesa aktive mbështetjeje.' }}
+            </div>
           </div>
         </div>
 
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
-          <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
-            👥 {{ lang === 'en' ? 'System Users & Shops (Connect with Full Authorization)' : 'Përdoruesit e Sistemit dhe Dyqanet (Lidhu me Autorizim të Plotë)' }}
-          </h2>
-          <div class="overflow-x-auto">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2 sm:border-b-0 sm:pb-0">
+              👥 {{ lang === 'en' ? 'System Users & Shops (Connect with Full Authorization)' : 'Përdoruesit e Sistemit dhe Dyqanet (Lidhu me Autorizim të Plotë)' }}
+            </h2>
+            <button @click="usersPanelCollapsed = !usersPanelCollapsed" class="rounded-full border border-gray-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-wider text-gray-700 transition hover:border-gray-300 hover:bg-gray-50">
+              {{ usersPanelCollapsed ? (lang === 'en' ? 'Expand Users' : 'Zgjeroni Përdoruesit') : (lang === 'en' ? 'Collapse Users' : 'Mbyll Përdoruesit') }}
+            </button>
+          </div>
+
+          <div v-if="usersPanelCollapsed" class="rounded-3xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-[10px] uppercase tracking-[0.28em] text-gray-500">{{ lang === 'en' ? 'User list is collapsed for performance.' : 'Lista e përdoruesve është mbyllur për performancë.' }}</p>
+                <p class="mt-2 text-2xl font-black text-slate-900">{{ users.length }} {{ lang === 'en' ? 'users hidden' : 'përdorues të fshehur' }}</p>
+              </div>
+              <p class="text-xs text-gray-500 max-w-xl">
+                {{ lang === 'en' ? 'Expand this section only when you need to review or manage users. It keeps the admin panel faster when the system has many accounts.' : 'Zgjeroni këtë seksion vetëm kur të duhet të rishikoni ose menaxhoni përdoruesit. Kjo mban panelin më të shpejtë kur sistemi ka shumë llogari.' }}
+              </p>
+            </div>
+          </div>
+
+          <div v-if="!usersPanelCollapsed" class="overflow-x-auto max-h-[520px] overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-inner">
             <table class="w-full text-left text-xs">
-              <thead class="bg-gray-50 text-gray-400 uppercase font-black">
+              <thead class="bg-gray-50 text-gray-400 uppercase font-black sticky top-0 z-10">
                 <tr>
                   <th class="p-3 rounded-l-xl">{{ lang === 'en' ? 'Name / Shop' : 'Emri / Dyqani' }}</th>
                   <th class="p-3">E-mail</th>
@@ -432,7 +506,7 @@ export default {
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100 font-bold">
-                <tr v-for="u in users" :key="u.email" class="hover:bg-gray-50/50">
+                <tr v-for="u in users" :key="u.email" class="hover:bg-gray-50/50" :class="{ 'cursor-pointer bg-blue-50/50': activeVendorProfile?.email === u.email && u.shopName && u.role === 'vendor', 'cursor-pointer': u.shopName && u.role === 'vendor' }" @click="u.shopName && u.role === 'vendor' && inspectUserShop(u)">
                   <td class="p-3 flex items-center gap-3">
                     <img :src="u.avatar" class="w-8 h-8 rounded-lg object-cover" />
                     <div>
@@ -447,10 +521,7 @@ export default {
                     </span>
                   </td>
                   <td class="p-3 text-right space-x-2">
-                    <button v-if="u.shopName && u.role === 'vendor'" @click="inspectUserShop(u)" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] uppercase transition font-black">
-                      {{ lang === 'en' ? 'Connect to Shop ⚡' : 'Lidhu me Dyqanin ⚡' }}
-                    </button>
-                    <button v-if="u.email !== 'admin@shopaz.com'" @click="handleDeleteUser(u.email)" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl text-[10px] uppercase transition">
+                    <button v-if="u.email !== 'admin@shopaz.com'" @click.stop="handleDeleteUser(u.email)" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl text-[10px] uppercase transition">
                       {{ lang === 'en' ? 'Delete 🗑️' : 'Fshi 🗑️' }}
                     </button>
                   </td>
@@ -750,22 +821,49 @@ export default {
           <div v-else-if="activeModal === 'pendingApps'">
             <div v-if="pendingVendors.length === 0" class="text-center py-12 text-gray-400 text-xs font-bold uppercase">{{ lang === 'en' ? 'No pending applications.' : 'Nuk ka aplikime në pritje.' }}</div>
             <div v-else class="space-y-3">
-              <div v-for="ven in pendingVendors" :key="ven.email" class="bg-amber-50/50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                  <img :src="ven.avatar" class="w-12 h-12 object-cover rounded-xl bg-white border border-amber-200" />
-                  <div class="space-y-1">
-                    <h4 class="text-xs font-black text-gray-900 uppercase">{{ ven.name }}</h4>
-                    <p class="text-[11px] font-bold text-gray-600">{{ lang === 'en' ? 'Shop:' : 'Dyqani:' }} {{ ven.shopName }}</p>
-                    <p class="text-[10px] font-mono text-gray-400">{{ ven.email }}</p>
+              <div v-for="ven in pendingVendors" :key="ven.email" class="bg-amber-50/50 border border-amber-200 p-4 rounded-2xl transition hover:border-amber-300 cursor-pointer" @click="openVendorProfile(ven)">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div class="flex items-start gap-3">
+                    <img :src="ven.avatar" class="w-12 h-12 object-cover rounded-xl bg-white border border-amber-200" />
+                    <div class="space-y-1">
+                      <h4 class="text-xs font-black text-gray-900 uppercase">{{ ven.name }}</h4>
+                      <p class="text-[11px] font-bold text-gray-600">{{ lang === 'en' ? 'Shop:' : 'Dyqani:' }} {{ ven.shopName || '—' }}</p>
+                      <p class="text-[10px] font-mono text-gray-400">{{ ven.email }}</p>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] text-gray-600 font-bold">
+                    <div class="rounded-xl bg-white/70 px-2.5 py-2 border border-amber-100">
+                      <span class="block uppercase text-[9px] text-gray-400">{{ lang === 'en' ? 'Phone' : 'Telefoni' }}</span>
+                      {{ ven.shopPhone || ven.phone || '—' }}
+                    </div>
+                    <div class="rounded-xl bg-white/70 px-2.5 py-2 border border-amber-100">
+                      <span class="block uppercase text-[9px] text-gray-400">{{ lang === 'en' ? 'Address' : 'Adresa' }}</span>
+                      {{ ven.shopAddress || ven.address || '—' }}
+                    </div>
+                    <div class="rounded-xl bg-white/70 px-2.5 py-2 border border-amber-100">
+                      <span class="block uppercase text-[9px] text-gray-400">{{ lang === 'en' ? 'Category' : 'Kategoria' }}</span>
+                      {{ ven.shopCategory || '—' }}
+                    </div>
+                    <div class="rounded-xl bg-white/70 px-2.5 py-2 border border-amber-100">
+                      <span class="block uppercase text-[9px] text-gray-400">WhatsApp</span>
+                      {{ ven.whatsappNumber || '—' }}
+                    </div>
                   </div>
                 </div>
-                <div class="flex gap-2">
-                  <button @click="approveVendor(ven.email)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase rounded-xl transition">
-                    {{ lang === 'en' ? 'Approve ✓' : 'Mirato ✓' }}
-                  </button>
-                  <button @click="rejectVendor(ven.email)" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 font-black text-[10px] uppercase rounded-xl transition">
-                    {{ lang === 'en' ? 'Reject ✕' : 'Refuzo ✕' }}
-                  </button>
+
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-amber-100/80 pt-3">
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                    {{ lang === 'en' ? 'Click to open full vendor profile' : 'Kliko për të hapur profilin e plotë të shitësit' }}
+                  </p>
+                  <div class="flex gap-2">
+                    <button type="button" @click.stop="approveVendor(ven.email)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase rounded-xl transition">
+                      {{ lang === 'en' ? 'Approve ✓' : 'Mirato ✓' }}
+                    </button>
+                    <button type="button" @click.stop="rejectVendor(ven.email)" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 font-black text-[10px] uppercase rounded-xl transition">
+                      {{ lang === 'en' ? 'Reject ✕' : 'Refuzo ✕' }}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

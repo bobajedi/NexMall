@@ -193,15 +193,14 @@
 <script setup>
 import { ref, computed, watchEffect, provide, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { isCartOpen, cart, wishlist, currentUser as globalUser } from './store/productStore'
+import { isCartOpen, cart, wishlist, currentUser as globalUser, currentLang, searchQuery } from './store/productStore'
 import CartDrawer from './components/CartDrawer.vue'
 
 const router = useRouter()
 const route = useRoute()
 const currentUser = ref(null)
 
-const searchQuery = ref('')
-const lang = ref(localStorage.getItem('nexmall_lang') || 'al')
+const lang = currentLang
 const isDropdownOpen = ref(false)
 
 provide('searchQuery', searchQuery)
@@ -217,8 +216,10 @@ const cartTotal = computed(() => cart.value.reduce((total, item) => total + (ite
 const wishlistCount = computed(() => wishlist.value.length)
 
 watchEffect(() => {
-  const user1 = localStorage.getItem('currentUser')
-  const user2 = localStorage.getItem('nexmall_current_user')
+  const user1 = sessionStorage.getItem('currentUser')
+  const user2 = sessionStorage.getItem('nexmall_current_user')
+  const fallbackUser1 = localStorage.getItem('currentUser')
+  const fallbackUser2 = localStorage.getItem('nexmall_current_user')
   
   if (globalUser.value) {
     currentUser.value = globalUser.value
@@ -226,6 +227,10 @@ watchEffect(() => {
     currentUser.value = JSON.parse(user1)
   } else if (user2) {
     currentUser.value = JSON.parse(user2)
+  } else if (fallbackUser1) {
+    currentUser.value = JSON.parse(fallbackUser1)
+  } else if (fallbackUser2) {
+    currentUser.value = JSON.parse(fallbackUser2)
   } else {
     currentUser.value = null
   }
@@ -247,6 +252,8 @@ onUnmounted(() => {
 })
 
 const handleLogout = () => {
+  sessionStorage.removeItem('currentUser')
+  sessionStorage.removeItem('nexmall_current_user')
   localStorage.removeItem('currentUser')
   localStorage.removeItem('nexmall_current_user')
   currentUser.value = null

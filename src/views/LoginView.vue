@@ -90,22 +90,24 @@ const rememberMe = ref(false)
 const error = ref('')
 
 onMounted(() => {
-  const savedUser = localStorage.getItem('nexmall_remembered_username')
+  const savedUser = sessionStorage.getItem('nexmall_remembered_username') || localStorage.getItem('nexmall_remembered_username')
   if (savedUser) {
     username.value = savedUser
     rememberMe.value = true
   }
 })
 
-const handleLogin = () => {
+const handleLogin = async () => {
   error.value = ''
   const typedInput = username.value.trim()
-  const result = loginUser(typedInput, password.value)
+  const result = await loginUser(typedInput, password.value)
 
   if (result.success) {
     if (rememberMe.value) {
+      sessionStorage.setItem('nexmall_remembered_username', typedInput)
       localStorage.setItem('nexmall_remembered_username', typedInput)
     } else {
+      sessionStorage.removeItem('nexmall_remembered_username')
       localStorage.removeItem('nexmall_remembered_username')
     }
     router.push('/dashboard')

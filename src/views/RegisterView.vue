@@ -227,10 +227,10 @@ const handleAvatarUpload = (event) => {
   reader.readAsDataURL(file)
 }
 
-const handleRegister = () => {
+const handleRegister = async () => {
   const fullName = `${form.value.firstName.trim()} ${form.value.lastName.trim()}`
   
-  const result = registerUser({
+  const result = await registerUser({
     name: fullName,
     email: form.value.email,
     password: form.value.password,

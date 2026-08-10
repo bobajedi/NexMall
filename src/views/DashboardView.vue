@@ -55,8 +55,11 @@
             </div>
 
             <div class="space-y-1">
-              <label class="text-[10px] font-black uppercase text-gray-400">URL e Imazhit</label>
-              <input v-model="form.imageUrl" type="url" required class="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl transition bg-gray-50 focus:bg-white" placeholder="https://..." />
+              <label class="text-[10px] font-black uppercase text-gray-400">Zgjidh Imazhet</label>
+              <input type="file" multiple accept="image/*" @change="handleImagesUpload" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-gray-900 file:text-white cursor-pointer" />
+              <p v-if="form.images.length > 0" class="text-[10px] text-emerald-600 font-bold mt-1">
+                ✓ {{ form.images.length }} foto të zgjedhura.
+              </p>
             </div>
 
             <button type="submit" class="w-full py-3 bg-[#d61f43] hover:bg-[#b51433] text-white font-black text-xs uppercase tracking-wider rounded-xl transition shadow-md shadow-[#d61f43]/10">
@@ -106,7 +109,7 @@ onMounted(() => {
   if (!currentUser.value) router.push('/login')
 })
 
-const form = ref({ name: '', price: 0, stock: 10, category: 'fashion', imageUrl: '' })
+const form = ref({ name: '', price: 0, stock: 10, category: 'fashion', images: [] })
 
 const filteredOrders = computed(() => {
   if (!currentUser.value) return []
@@ -114,6 +117,11 @@ const filteredOrders = computed(() => {
 })
 
 const handleCreateProduct = () => {
+  if (!form.value.images.length) {
+    alert('Ju lutemi zgjidhni të paktën një imazh për produktin.')
+    return
+  }
+
   const newProduct = {
     id: Date.now(),
     name: form.value.name.trim(),
@@ -121,12 +129,24 @@ const handleCreateProduct = () => {
     stock: parseInt(form.value.stock),
     category: form.value.category,
     description: 'Produkt i NexMall.',
-    images: [form.value.imageUrl.trim()],
+    images: [...form.value.images],
     shopName: currentUser.value?.shopName || 'NexMall Store'
   }
   products.value.unshift(newProduct)
   saveProductsToStorage()
-  form.value = { name: '', price: 0, stock: 10, category: 'fashion', imageUrl: '' }
+  form.value = { name: '', price: 0, stock: 10, category: 'fashion', images: [] }
+}
+
+const handleImagesUpload = (event) => {
+  const files = Array.from(event.target.files || [])
+  form.value.images = []
+  files.forEach(file => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      form.value.images.push(e.target.result)
+    }
+    reader.readAsDataURL(file)
+  })
 }
 
 const handleLogout = () => {

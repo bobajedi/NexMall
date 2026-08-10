@@ -7,18 +7,18 @@
         <div class="lg:col-span-8 relative bg-gradient-to-r from-gray-950 via-gray-900 to-[#d61f43] rounded-3xl overflow-hidden shadow-xl text-white p-8 md:p-10 flex flex-col justify-between">
           <div class="space-y-3 max-w-lg z-10">
             <span class="inline-block px-3 py-1 bg-white text-gray-950 text-[9px] font-black uppercase tracking-widest rounded-full shadow">
-              🔥 OFERTA MEGA E SEZONIT
+              🔥 {{ lang === 'en' ? 'MEGA SEASON DEAL' : 'OFERTA MEGA E SEZONIT' }}
             </span>
             <h1 class="text-2xl md:text-4xl font-black tracking-tight uppercase leading-tight">
-              LOKALET MË TË MIRA TË KOSOVËS 
+              {{ lang === 'en' ? 'THE BEST SHOPS IN KOSOVO' : 'LOKALET MË TË MIRA TË KOSOVËS' }}
             </h1>
             <p class="text-xs text-gray-200 font-medium">
-              Ulje marramendëse në produkte të zgjedhura dhe dërgesë e shpejtë në derë për të gjitha porositë.
+              {{ lang === 'en' ? 'Huge discounts on selected items and fast home delivery for every order.' : 'Ulje marramendëse në produkte të zgjedhura dhe dërgesë e shpejtë në derë për të gjitha porositë.' }}
             </p>
           </div>
           <div class="pt-4 z-10 flex items-center gap-3">
             <a href="#products-section" class="px-6 py-3 bg-white text-gray-950 hover:bg-gray-100 text-[10px] font-black uppercase tracking-widest rounded-xl transition shadow-md">
-              EKSPLORO OFERTAT →
+              {{ lang === 'en' ? 'EXPLORE DEALS →' : 'EKSPLORO OFERTAT →' }}
             </a>
           </div>
           <div class="absolute right-4 bottom-4 text-7xl opacity-15 select-none pointer-events-none flex items-center justify-between w-full md:w-auto gap-6">
@@ -32,19 +32,19 @@
           <div class="bg-gradient-to-br from-[#d61f43] to-red-900 rounded-3xl p-5 text-white shadow-lg flex items-center justify-between relative overflow-hidden">
             <div class="space-y-1 z-10">
               <span class="px-2 py-0.5 bg-white/20 text-white text-[8px] font-black uppercase tracking-widest rounded">
-                FUSHATË SPECIALE
+                {{ lang === 'en' ? 'SPECIAL CAMPAIGN' : 'FUSHATË SPECIALE' }}
               </span>
-              <h3 class="text-base font-black uppercase">ULJE NETO %50</h3>
-              <p class="text-[10px] text-white/90">Mundësi e artë në artikujt e modës.</p>
+              <h3 class="text-base font-black uppercase">{{ lang === 'en' ? 'UP TO 50% OFF' : 'ULJE NETO %50' }}</h3>
+              <p class="text-[10px] text-white/90">{{ lang === 'en' ? 'Golden opportunity on fashion items.' : 'Mundësi e artë në artikujt e modës.' }}</p>
             </div>
             <span class="text-3xl z-10">⚡</span>
           </div>
 
           <div class="bg-white rounded-3xl p-5 border border-gray-100 shadow-lg flex items-center justify-between">
             <div class="space-y-1">
-              <span class="text-[9px] font-black text-[#d61f43] uppercase tracking-wider">ANE MBERANE KOSOVËS</span>
-              <h3 class="text-xs font-black text-gray-950 uppercase">TRANSPORT FALAS</h3>
-              <p class="text-[10px] text-gray-400 font-bold">Dërgesë e shpejtë dhe e sigurt</p>
+              <span class="text-[9px] font-black text-[#d61f43] uppercase tracking-wider">{{ lang === 'en' ? 'ALL OVER KOSOVO' : 'ANE MBERANE KOSOVËS' }}</span>
+              <h3 class="text-xs font-black text-gray-950 uppercase">{{ lang === 'en' ? 'FREE SHIPPING' : 'TRANSPORT FALAS' }}</h3>
+              <p class="text-[10px] text-gray-400 font-bold">{{ lang === 'en' ? 'Fast and secure delivery' : 'Dërgesë e shpejtë dhe e sigurt' }}</p>
             </div>
             <div class="w-12 h-12 rounded-2xl bg-red-50 text-[#d61f43] flex items-center justify-center text-xl font-black">
               🚚
@@ -61,7 +61,7 @@
         <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
           <div>
             <h3 class="text-xs font-black text-gray-950 uppercase tracking-widest border-b border-gray-100 pb-3 mb-4">
-              🗂️ KATEGORITË
+              🗂️ {{ lang === 'en' ? 'CATEGORIES' : 'KATEGORITË' }}
             </h3>
             <div class="space-y-2">
               <button 
@@ -84,10 +84,10 @@
           <div>
             <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
               <h3 class="text-xs font-black text-gray-950 uppercase tracking-widest">
-                🏷️ LOKALET
+                🏷️ {{ lang === 'en' ? 'SHOPS' : 'LOKALET' }}
               </h3>
               <button v-if="selectedBrands.length > 0" @click="selectedBrands = []" class="text-[9px] font-black text-[#d61f43] uppercase hover:underline">
-                Pastro
+                {{ lang === 'en' ? 'Clear' : 'Pastro' }}
               </button>
             </div>
             <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -100,7 +100,7 @@
 
           <div class="border-t border-gray-100 pt-5">
             <h3 class="text-xs font-black text-gray-950 uppercase tracking-widest pb-3 mb-3">
-              💶 ÇMIMI (€)
+              💶 {{ lang === 'en' ? 'PRICE (€)' : 'ÇMIMI (€)' }}
             </h3>
             <div class="flex items-center gap-2">
               <input 
@@ -125,7 +125,7 @@
           <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
               <h2 class="text-sm font-black text-gray-950 uppercase tracking-wide">{{ selectedCategory }}</h2>
-              <p class="text-[10px] text-gray-400 font-bold mt-0.5">{{ filteredProducts.length }} produkte u gjetën</p>
+              <p class="text-[10px] text-gray-400 font-bold mt-0.5">{{ filteredProducts.length }} {{ lang === 'en' ? 'products found' : 'produkte u gjetën' }}</p>
             </div>
 
             <div class="flex items-center gap-3 w-full md:w-auto">
@@ -133,16 +133,16 @@
                 v-model="sortBy" 
                 class="px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold focus:border-gray-950 outline-none cursor-pointer"
               >
-                <option value="default">Rreshtimi Parazgjedhur</option>
-                <option value="price-asc">Çmimi: Nga më i oltji te më i larti</option>
-                <option value="price-desc">Çmimi: Nga më i larti te më i oltji</option>
-                <option value="name">Emri: A-Z</option>
+                <option value="default">{{ lang === 'en' ? 'Default Sort' : 'Rreshtimi Parazgjedhur' }}</option>
+                <option value="price-asc">{{ lang === 'en' ? 'Price: Low to High' : 'Çmimi: Nga më i ultë te më i larti' }}</option>
+                <option value="price-desc">{{ lang === 'en' ? 'Price: High to Low' : 'Çmimi: Nga më i larti te më i ultë' }}</option>
+                <option value="name">{{ lang === 'en' ? 'Name: A-Z' : 'Emri: A-Z' }}</option>
               </select>
 
               <input 
                 v-model="searchQuery" 
                 type="text" 
-                placeholder="Kërko produkt..." 
+                :placeholder="lang === 'en' ? 'Search product...' : 'Kërko produkt...'" 
                 class="w-full md:w-56 px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold focus:border-gray-950 outline-none"
               />
             </div>
@@ -150,8 +150,8 @@
 
           <div v-if="filteredProducts.length === 0" class="bg-white p-16 rounded-2xl border border-gray-100 shadow-sm text-center space-y-3">
             <span class="text-4xl block">🔍</span>
-            <h3 class="text-xs font-black text-gray-950 uppercase">Nuk u gjet asnjë produkt</h3>
-            <p class="text-[10px] text-gray-400 font-bold">Provo të ndryshosh kriteret e kërkimit ose çmimit.</p>
+            <h3 class="text-xs font-black text-gray-950 uppercase">{{ lang === 'en' ? 'No products found' : 'Nuk u gjet asnjë produkt' }}</h3>
+            <p class="text-[10px] text-gray-400 font-bold">{{ lang === 'en' ? 'Try changing your search or price filters.' : 'Provo të ndryshosh kriteret e kërkimit ose çmimit.' }}</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -207,7 +207,7 @@
                     @click="addToCartGlobal(product)"
                     class="px-3 py-2 bg-[#d61f43] hover:bg-red-700 text-white text-[9px] font-black uppercase tracking-wider rounded-xl transition shadow-sm"
                   >
-                    ⚡ BLEJ TANI
+                    ⚡ {{ lang === 'en' ? 'BUY NOW' : 'BLEJ TANI' }}
                   </button>
                 </div>
               </div>
@@ -225,16 +225,33 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { products, categories, users, addToCartGlobal, wishlist, toggleWishlist } from '../store/productStore'
+import { products, categories, users, addToCartGlobal, wishlist, toggleWishlist, currentLang, searchQuery } from '../store/productStore'
 
 const router = useRouter()
 const route = useRoute()
+const lang = currentLang
 
-const searchQuery = ref('')
 const selectedCategory = ref('TË GJITHA')
 const sortBy = ref('default')
 const minPrice = ref(null)
 const maxPrice = ref(null)
+
+const categoryAliases = {
+  drite: ['elektronike', 'ndriçim', 'light', 'llampë', 'ampul', 'lamp'],
+  ampul: ['elektronike', 'ndriçim', 'light', 'llampë', 'lamp'],
+  light: ['elektronike', 'ndriçim', 'lighting', 'llampë', 'ampul'],
+  scooter: ['scooter', 'trotinet', 'troti', 'elektronik', 'elektronike'],
+  trotinete: ['scooter', 'trotinet', 'troti'],
+  laptop: ['tech', 'elektronike', 'tek']
+}
+
+const matchesCategoryAlias = (category, query) => {
+  if (!category) return false
+  const safeCategory = category.toLowerCase()
+  if (safeCategory.includes(query)) return true
+  const aliases = categoryAliases[query]
+  return aliases ? aliases.some(alias => safeCategory.includes(alias)) : false
+}
 
 const initialShop = route.query.shop ? [route.query.shop] : []
 const selectedBrands = ref(initialShop)
@@ -264,7 +281,9 @@ const filteredProducts = computed(() => {
     result = result.filter(p => 
       p.name.toLowerCase().includes(q) || 
       (p.shopName && p.shopName.toLowerCase().includes(q)) ||
-      (p.description && p.description.toLowerCase().includes(q))
+      (p.description && p.description.toLowerCase().includes(q)) ||
+      (p.category && p.category.toLowerCase().includes(q)) ||
+      matchesCategoryAlias(p.category, q)
     )
   }
 

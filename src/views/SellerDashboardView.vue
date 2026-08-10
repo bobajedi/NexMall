@@ -220,13 +220,13 @@
               </div>
 
               <div class="space-y-1">
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Pamja e Produktit</label>
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Pamjet e Produktit</label>
                 <div class="border-2 border-dashed border-white/10 hover:border-amber-500/40 rounded-2xl p-4 bg-black/40 text-center relative transition cursor-pointer">
-                  <input type="file" accept="image/*" @change="handleImageUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                  <input type="file" multiple accept="image/*" @change="handleImageUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                   <div class="space-y-1">
                     <span class="text-lg">📁</span>
-                    <p class="text-[10px] text-slate-400">Zgjidh skedarin ose lësho këtu</p>
-                    <p v-if="newProduct.imageUrl" class="text-[9px] text-emerald-400 font-bold">Pamja u ngarkua ✓</p>
+                    <p class="text-[10px] text-slate-400">Zgjidh skedarin/shkarkime ose lësho këtu</p>
+                    <p v-if="newProduct.images.length > 0" class="text-[9px] text-emerald-400 font-bold">{{ newProduct.images.length }} foto të zgjedhura ✓</p>
                   </div>
                 </div>
               </div>
@@ -272,7 +272,7 @@ const newProduct = ref({
   price: null, 
   stock: null, 
   category: '', 
-  imageUrl: '', 
+  images: [], 
   description: '', 
   variantType: '' 
 })
@@ -288,16 +288,18 @@ const totalRevenue = computed(() => {
   return myOrders.value.reduce((acc, order) => acc + (Number(order.total) || 0), 0)
 })
 
-const handleRegister = () => {
-  if (registerUser(
-    authForm.value.username, 
-    authForm.value.password, 
+const handleRegister = async () => {
+  const result = await registerUser(
+    authForm.value.username,
+    authForm.value.password,
     authForm.value.shopName,
     authForm.value.shopCategory,
     authForm.value.shopAddress,
     authForm.value.shopPhone,
     authForm.value.whatsappNumber
-  )) {
+  )
+
+  if (result.success) {
     authForm.value = { 
       username: '', 
       password: '', 
@@ -310,33 +312,36 @@ const handleRegister = () => {
   }
 }
 
-const handleImageUpload = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
+const handleImageUpload = async (event) => {
+  const files = Array.from(event.target.files || [])
+  if (!files.length) return
 
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const img = new Image()
-    img.src = e.target.result
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      
-      canvas.width = 400
-      canvas.height = 400
-      ctx.drawImage(img, 0, 0, 400, 400)
-      
-      newProduct.value.imageUrl = canvas.toDataURL('image/jpeg', 0.7)
+  newProduct.value.images = []
+  await Promise.all(files.map(file => new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.src = e.target.result
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        const size = 500
+        canvas.width = size
+        canvas.height = size
+        ctx.drawImage(img, 0, 0, size, size)
+        newProduct.value.images.push(canvas.toDataURL('image/jpeg', 0.75))
+        resolve()
+      }
     }
-  }
-  reader.readAsDataURL(file)
+    reader.readAsDataURL(file)
+  })))
 }
 
 const handleCreateProduct = () => {
   if (!currentUser.value) return
 
-  if (!newProduct.value.imageUrl) {
-    alert('Ju lutemi zgjidhni një pamje të vlefshme për produktin!')
+  if (!newProduct.value.images.length) {
+    alert('Ju lutemi zgjidhni të paktën një pamje të vlefshme për produktin!')
     return
   }
 
@@ -350,7 +355,7 @@ const handleCreateProduct = () => {
     price: Number(newProduct.value.price) || 0,
     stock: Number(newProduct.value.stock) || 0,
     category: newProduct.value.category,
-    images: [newProduct.value.imageUrl],
+    images: [...newProduct.value.images],
     description: newProduct.value.description.trim() || 'Nuk ka përshkrim produkti.',
     shopName: currentUser.value.shopName,
     variantType: newProduct.value.variantType.trim() || 'Opsioni',
@@ -365,7 +370,7 @@ const handleCreateProduct = () => {
     price: null, 
     stock: null, 
     category: '', 
-    imageUrl: '', 
+    images: [], 
     description: '', 
     variantType: '' 
   }

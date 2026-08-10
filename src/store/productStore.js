@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 
-export const currentLang = ref('al')
+const savedLang = typeof window !== 'undefined' ? localStorage.getItem('nexmall_lang') : null
+export const currentLang = ref(savedLang || 'al')
 export const activeModal = ref(null)
 export const activeShopName = ref('')
 export const activeVendorProfile = ref(null)
@@ -12,6 +13,16 @@ export const sortBy = ref('default')
 export const minPrice = ref(null)
 export const maxPrice = ref(null)
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const buildApiUrl = (path) => `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`
+const normalizeProduct = (product) => ({
+  ...product,
+  id: Number(product.id),
+  price: Number(product.price),
+  stock: Number(product.stock || 0),
+  images: Array.isArray(product.images) ? product.images : (product.image ? [product.image] : [])
+})
+
 const savedProducts = localStorage.getItem('products')
 const savedOrders = localStorage.getItem('orders')
 const savedWishlist = localStorage.getItem('wishlist')
@@ -21,15 +32,63 @@ const savedPartners = localStorage.getItem('nexmall_partner_applications')
 const savedTickets = localStorage.getItem('nexmall_tickets')
 const savedCategories = localStorage.getItem('nexmall_categories')
 
-const getStoredUser = () => {
-  const u1 = localStorage.getItem('currentUser')
-  if (u1) return JSON.parse(u1)
-  const u2 = localStorage.getItem('nexmall_current_user')
-  if (u2) return JSON.parse(u2)
+const storage = () => typeof window !== 'undefined' ? window.sessionStorage : null
+const readStoredUser = () => {
+  const store = storage()
+  if (!store) return null
+
+  const candidates = ['currentUser', 'nexmall_current_user']
+  for (const key of candidates) {
+    const rawValue = store.getItem(key) || localStorage.getItem(key)
+    if (rawValue) {
+      try {
+        return JSON.parse(rawValue)
+      } catch {
+        store.removeItem(key)
+        localStorage.removeItem(key)
+      }
+    }
+  }
+
   return null
 }
 
-export const currentUser = ref(getStoredUser())
+const persistAuthUser = (user) => {
+  const store = storage()
+  if (!store) return
+
+  const safeUser = { ...(user || {}) }
+  delete safeUser.password
+  const payload = JSON.stringify(safeUser)
+  store.setItem('currentUser', payload)
+  store.setItem('nexmall_current_user', payload)
+}
+
+const clearAuthUser = () => {
+  const store = storage()
+  if (!store) return
+  store.removeItem('currentUser')
+  store.removeItem('nexmall_current_user')
+}
+
+export const currentUser = ref(readStoredUser())
+
+const categorySearchAliases = {
+  drite: ['elektronike', 'ndriçim', 'light', 'llampë', 'ampul', 'lamp'],
+  ampul: ['elektronike', 'ndriçim', 'light', 'llampë', 'lamp'],
+  light: ['elektronike', 'ndriçim', 'lighting', 'llampë', 'ampul'],
+  scooter: ['scooter', 'trotinet', 'troti', 'elektronik', 'elektronike'],
+  trotinete: ['scooter', 'trotinet', 'troti'],
+  laptop: ['tech', 'elektronike', 'tek']
+}
+
+const categoryMatchesQuery = (category, query) => {
+  if (!category) return false
+  const safeCategory = category.toLowerCase()
+  if (safeCategory.includes(query)) return true
+  const aliases = categorySearchAliases[query]
+  return aliases ? aliases.some(alias => safeCategory.includes(alias)) : false
+}
 
 export const categories = ref(savedCategories ? JSON.parse(savedCategories) : [
   'TË GJITHA', 'VESHJE', 'KËPUCË', 'AKSESUAR', 'T-SHIRT', 'ELEKTRONIKE'
@@ -72,6 +131,43 @@ export const products = ref(savedProducts ? JSON.parse(savedProducts) : [
   }
 ])
 
+export const fetchProductsFromApi = async () => {
+  try {
+    const response = await fetch(buildApiUrl('/api/products'))
+    if (!response.ok) throw new Error('Unable to load products from backend')
+
+    const data = await response.json()
+    const apiProducts = Array.isArray(data?.products) ? data.products : []
+
+    if (apiProducts.length) {
+      products.value = apiProducts.map(normalizeProduct)
+      saveProductsToStorage()
+    }
+
+    return products.value
+  } catch (error) {
+    console.warn('Backend products unavailable, using local data instead.', error)
+    return products.value
+  }
+}
+
+export const fetchProductByIdFromApi = async (productId) => {
+  try {
+    const response = await fetch(buildApiUrl(`/api/products/${productId}`))
+    if (!response.ok) throw new Error('Product was not found')
+
+    const data = await response.json()
+    return normalizeProduct(data.product)
+  } catch (error) {
+    console.warn('Backend product lookup failed, trying local store.', error)
+    return products.value.find(product => product.id === Number(productId)) || null
+  }
+}
+
+if (typeof window !== 'undefined') {
+  fetchProductsFromApi()
+}
+
 export const filteredProducts = computed(() => {
   let result = [...products.value]
 
@@ -84,7 +180,9 @@ export const filteredProducts = computed(() => {
     result = result.filter(p => 
       p.name.toLowerCase().includes(query) || 
       (p.description && p.description.toLowerCase().includes(query)) ||
-      (p.shopName && p.shopName.toLowerCase().includes(query))
+      (p.shopName && p.shopName.toLowerCase().includes(query)) ||
+      (p.category && p.category.toLowerCase().includes(query)) ||
+      categoryMatchesQuery(p.category, query)
     )
   }
 
@@ -170,8 +268,7 @@ export const updateVendorProfile = (updatedData) => {
     userInList.avatar = currentUser.value.avatar
   }
 
-  localStorage.setItem('currentUser', JSON.stringify(currentUser.value))
-  localStorage.setItem('nexmall_current_user', JSON.stringify(currentUser.value))
+  persistAuthUser(currentUser.value)
   saveUsersToStorage()
 
   return { success: true, message: 'Profilo u përditësua me sukses!' }
@@ -360,21 +457,65 @@ export const saveUsersToStorage = () => {
   localStorage.setItem('nexmall_users', JSON.stringify(users.value))
 }
 
-export const loginUser = (email, password) => {
-  const found = users.value.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password)
-  if (found) {
-    if (found.status === 'pending') {
-      return { success: false, message: 'Aplikimi juaj për dyqan nuk është aprovuar ende nga administratori!' }
+export const loginUser = async (email, password) => {
+  try {
+    const response = await fetch(buildApiUrl('/api/login'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    })
+
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || 'E-posta ose fjalëkalimi është i gabuar!')
+
+    const normalizedUser = {
+      id: data.user?.id || Date.now(),
+      email: data.user?.email || email,
+      name: data.user?.name || email.split('@')[0],
+      role: data.user?.role || 'customer',
+      shopName: data.user?.shopName || '',
+      avatar: data.user?.avatar || '',
+      status: data.user?.status || 'approved',
+      password
     }
-    currentUser.value = found
-    localStorage.setItem('currentUser', JSON.stringify(found))
-    localStorage.setItem('nexmall_current_user', JSON.stringify(found))
-    return { success: true }
+
+    currentUser.value = normalizedUser
+    persistAuthUser(normalizedUser)
+    return { success: true, message: data.message || 'Hyrja u krye me sukses!' }
+  } catch (error) {
+    const found = users.value.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password)
+    if (found) {
+      if (found.status === 'pending') {
+        return { success: false, message: 'Aplikimi juaj për dyqan nuk është aprovuar ende nga administratori!' }
+      }
+      currentUser.value = found
+      persistAuthUser(found)
+      return { success: true, message: 'Hyrja u krye me sukses (fallback lokal).' }
+    }
+
+    return { success: false, message: error.message || 'E-posta ose fjalëkalimi është i gabuar!' }
   }
-  return { success: false, message: 'E-posta ose fjalëkalimi është i gabuar!' }
 }
 
-export const registerUser = (userData) => {
+export const registerUser = async (userDataOrEmail, password, shopName, shopCategory, shopAddress, shopPhone, whatsappNumber) => {
+  let userData = {}
+
+  if (typeof userDataOrEmail === 'object' && userDataOrEmail !== null) {
+    userData = userDataOrEmail
+  } else {
+    userData = {
+      email: userDataOrEmail,
+      password,
+      name: shopName || 'Shitës',
+      role: 'vendor',
+      shopName,
+      shopCategory,
+      shopAddress,
+      shopPhone,
+      whatsappNumber
+    }
+  }
+
   const existing = users.value.find(u => u.email.toLowerCase() === userData.email.toLowerCase())
   if (existing) {
     return { success: false, message: 'Kjo adresë e-postë është tashmë në përdorim!' }
@@ -391,38 +532,72 @@ export const registerUser = (userData) => {
     shopPhone: userData.shopPhone || '',
     whatsappNumber: userData.whatsappNumber || '',
     avatar: userData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-    status: userData.role === 'customer' ? 'approved' : 'pending' 
+    status: userData.role === 'customer' ? 'approved' : 'pending'
   }
 
-  users.value.push(newUser)
-  saveUsersToStorage()
+  try {
+    const response = await fetch(buildApiUrl('/api/register'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: newUser.email, password: newUser.password })
+    })
 
-  if (newUser.role === 'vendor') {
-    const newPartnerApp = {
-      id: 'PAR-' + Math.floor(1000 + Math.random() * 9000),
-      companyName: newUser.shopName,
-      contactName: newUser.name,
-      email: newUser.email,
-      phone: newUser.shopPhone || '+383 44 000 000',
-      shopCategory: newUser.shopCategory || '',
-      shopAddress: newUser.shopAddress || '',
-      shopPhone: newUser.shopPhone || '',
-      whatsappNumber: newUser.whatsappNumber || '',
-      message: 'Regjistrimi i shitësit u krijua direkt përmes platformës.',
-      status: 'pending',
-      date: new Date().toLocaleDateString('sq-AL')
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || 'Regjistrimi dështoi.')
+
+    users.value.push(newUser)
+    saveUsersToStorage()
+
+    if (newUser.role === 'vendor') {
+      const newPartnerApp = {
+        id: 'PAR-' + Math.floor(1000 + Math.random() * 9000),
+        companyName: newUser.shopName,
+        contactName: newUser.name,
+        email: newUser.email,
+        phone: newUser.shopPhone || '+383 44 000 000',
+        shopCategory: newUser.shopCategory || '',
+        shopAddress: newUser.shopAddress || '',
+        shopPhone: newUser.shopPhone || '',
+        whatsappNumber: newUser.whatsappNumber || '',
+        message: 'Regjistrimi i shitësit u krijua direkt përmes platformës.',
+        status: 'pending',
+        date: new Date().toLocaleDateString('sq-AL')
+      }
+      partnerApplications.value.push(newPartnerApp)
+      savePartnersToStorage()
     }
-    partnerApplications.value.push(newPartnerApp)
-    savePartnersToStorage()
-  }
 
-  return { success: true, message: 'Regjistrimi u krye me sukses! Mund të kyçeni.' }
+    return { success: true, message: data.message || 'Regjistrimi u krye me sukses! Mund të kyçeni.' }
+  } catch (error) {
+    users.value.push(newUser)
+    saveUsersToStorage()
+
+    if (newUser.role === 'vendor') {
+      const newPartnerApp = {
+        id: 'PAR-' + Math.floor(1000 + Math.random() * 9000),
+        companyName: newUser.shopName,
+        contactName: newUser.name,
+        email: newUser.email,
+        phone: newUser.shopPhone || '+383 44 000 000',
+        shopCategory: newUser.shopCategory || '',
+        shopAddress: newUser.shopAddress || '',
+        shopPhone: newUser.shopPhone || '',
+        whatsappNumber: newUser.whatsappNumber || '',
+        message: 'Regjistrimi i shitësit u krijua direkt përmes platformës.',
+        status: 'pending',
+        date: new Date().toLocaleDateString('sq-AL')
+      }
+      partnerApplications.value.push(newPartnerApp)
+      savePartnersToStorage()
+    }
+
+    return { success: true, message: 'Regjistrimi u krye me sukses (fallback lokal).' }
+  }
 }
 
 export const logoutUser = () => {
   currentUser.value = null
-  localStorage.removeItem('currentUser')
-  localStorage.removeItem('nexmall_current_user')
+  clearAuthUser()
 }
 
 export const saveOrdersToStorage = () => {

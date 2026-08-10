@@ -5,10 +5,10 @@
       <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <span class="text-[10px] font-black bg-[#d61f43]/10 text-[#d61f43] px-2.5 py-1 rounded-md uppercase tracking-wider inline-block mb-1">
-            Qendra e Kontrollit të Administratorit
+            {{ lang === 'en' ? 'Admin Control Center' : 'Qendra e Kontrollit të Administratorit' }}
           </span>
           <h1 class="text-xl font-black text-gray-900 uppercase tracking-tight">
-            🤝 Pustina e Aplikimeve për Partneritet & Bashkëpunim
+            🤝 {{ lang === 'en' ? 'Partnership & Collaboration Applications Hub' : 'Pustina e Aplikimeve për Partneritet & Bashkëpunim' }}
           </h1>
         </div>
 
@@ -17,7 +17,7 @@
             to="/dashboard" 
             class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-xs font-black uppercase rounded-xl transition shadow-sm active:scale-[0.97]"
           >
-            Kthehu te Paneli i Shitësit
+            {{ lang === 'en' ? 'Back to Seller Panel' : 'Kthehu te Paneli i Shitësit' }}
           </router-link>
         </div>
       </div>
@@ -26,11 +26,11 @@
         
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
           <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
-            📋 Aplikimet e Ardhura për Partneritet (CRM)
+            📋 {{ lang === 'en' ? 'Incoming Partnership Applications (CRM)' : 'Aplikimet e Ardhura për Partneritet (CRM)' }}
           </h2>
 
           <div v-if="partnerApplications.length === 0" class="text-center py-12 text-gray-400 text-xs font-bold uppercase">
-            Nuk ka ende asnjë aplikim për partneritet.
+            {{ lang === 'en' ? 'No partnership applications yet.' : 'Nuk ka ende asnjë aplikim për partneritet.' }}
           </div>
 
           <div v-else class="space-y-4">
@@ -55,9 +55,9 @@
                 </div>
                 
                 <div class="text-xs text-gray-600 font-bold space-y-1">
-                  <p>👤 Përfaqësuesi: <span class="text-gray-900">{{ partner.contactName }}</span> | 📞 {{ partner.phone }} | ✉️ {{ partner.email }}</p>
-                  <p class="text-gray-500 font-normal bg-white p-3 rounded-xl border border-gray-100 mt-1">
-                    💬 <strong>Mesazhi:</strong> {{ partner.message || 'Nuk është specifikuar' }}
+                <p>👤 {{ lang === 'en' ? 'Representative:' : 'Përfaqësuesi:' }} <span class="text-gray-900">{{ partner.contactName }}</span> | 📞 {{ partner.phone }} | ✉️ {{ partner.email }}</p>
+                <p class="text-gray-500 font-normal bg-white p-3 rounded-xl border border-gray-100 mt-1">
+                  💬 <strong>{{ lang === 'en' ? 'Message:' : 'Mesazhi:' }}</strong> {{ partner.message || (lang === 'en' ? 'Not specified' : 'Nuk është specifikuar') }}
                   </p>
                 </div>
                 
@@ -69,13 +69,13 @@
                   @click="handleStatus(partner.id, 'approved')" 
                   class="flex-1 md:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase rounded-xl transition shadow-sm active:scale-[0.98]"
                 >
-                  Mirato ✓
+                  {{ lang === 'en' ? 'Approve ✓' : 'Mirato ✓' }}
                 </button>
                 <button 
                   @click="handleStatus(partner.id, 'rejected')" 
                   class="flex-1 md:flex-none px-4 py-2.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-black uppercase rounded-xl transition active:scale-[0.98]"
                 >
-                  Refuzo ✕
+                  {{ lang === 'en' ? 'Reject ✕' : 'Refuzo ✕' }}
                 </button>
               </div>
             </div>
@@ -89,7 +89,9 @@
 </template>
 
 <script setup>
-import { partnerApplications, updatePartnerStatus } from '../store/productStore'
+import { partnerApplications, updatePartnerStatus, currentLang } from '../store/productStore'
+
+const lang = currentLang
 
 const handleStatus = (id, status) => {
   const success = updatePartnerStatus(id, status)

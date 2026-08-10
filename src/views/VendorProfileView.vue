@@ -10,13 +10,13 @@
         />
         <div class="space-y-2 text-center sm:text-left flex-1">
           <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-rose-50 rounded-lg text-[10px] font-black text-[#d61f43] uppercase tracking-widest">
-            Dyqan i Aprovuar
+            {{ lang === 'en' ? 'Approved Shop' : 'Dyqan i Aprovuar' }}
           </div>
           <h1 class="text-2xl font-black text-slate-950 uppercase tracking-tight">{{ shopUser.shopName || shopUser.name }}</h1>
-          <p class="text-xs text-slate-500 font-bold">Përfaqësuesi: {{ shopUser.name }} | E-posta: {{ shopUser.email }}</p>
+          <p class="text-xs text-slate-500 font-bold">{{ lang === 'en' ? 'Representative:' : 'Përfaqësuesi:' }} {{ shopUser.name }} | {{ lang === 'en' ? 'Email:' : 'E-posta:' }} {{ shopUser.email }}</p>
         </div>
         <router-link to="/" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-xl transition">
-          ← Faqja Kryesore
+          ← {{ lang === 'en' ? 'Home Page' : 'Faqja Kryesore' }}
         </router-link>
       </div>
 
@@ -32,13 +32,13 @@
       <div v-if="shopUser" class="space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-black text-slate-950 uppercase tracking-widest">
-            📦 Produktet e këtij dyqani ({{ shopProducts.length }})
+            📦 {{ lang === 'en' ? 'Products from this shop' : 'Produktet e këtij dyqani' }} ({{ shopProducts.length }})
           </h3>
         </div>
 
         <div v-if="shopProducts.length === 0" class="bg-white p-12 rounded-2xl border border-slate-100 text-center text-xs text-slate-400 font-bold">
-          Ky dyqan nuk ka shtuar ende asnjë produkt.
-        </div>
+            {{ lang === 'en' ? 'This shop has not added any products yet.' : 'Ky dyqan nuk ka shtuar ende asnjë produkt.' }}
+      </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <div 
@@ -71,7 +71,7 @@
                   @click="addToCartGlobal(product)"
                   class="px-3 py-2 bg-[#d61f43] hover:bg-rose-700 text-white text-[9px] font-black uppercase tracking-wider rounded-xl transition shadow-sm"
                 >
-                  ⚡ BLEJ TANI
+                  ⚡ {{ lang === 'en' ? 'BUY NOW' : 'BLEJ TANI' }}
                 </button>
               </div>
             </div>
@@ -86,9 +86,10 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { users, products, addToCartGlobal } from '../store/productStore'
+import { users, products, addToCartGlobal, currentLang } from '../store/productStore'
 
 const route = useRoute()
+const lang = currentLang
 const router = useRouter()
 
 const shopNameParam = decodeURIComponent(route.params.shopName || '')

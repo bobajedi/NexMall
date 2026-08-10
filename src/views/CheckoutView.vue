@@ -4,20 +4,20 @@
 
       <div class="flex items-center justify-between bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         <div>
-          <h1 class="text-2xl font-black text-gray-950 uppercase tracking-tight">🛒 PËRFUNDO POROSINË</h1>
-          <p class="text-xs text-gray-400 font-bold mt-1">Porositni produktet në shportën tuaj në mënyrë të sigurt.</p>
+          <h1 class="text-2xl font-black text-gray-950 uppercase tracking-tight">🛒 {{ lang === 'en' ? 'COMPLETE YOUR ORDER' : 'PËRFUNDO POROSINË' }}</h1>
+          <p class="text-xs text-gray-400 font-bold mt-1">{{ lang === 'en' ? 'Place the products in your cart safely.' : 'Porositni produktet në shportën tuaj në mënyrë të sigurt.' }}</p>
         </div>
         <router-link to="/" class="px-4 py-2.5 border border-gray-200 hover:border-gray-900 bg-white text-xs font-black uppercase tracking-wider rounded-xl transition">
-          KTHEHU TE DYQANI
+          {{ lang === 'en' ? 'RETURN TO SHOP' : 'KTHEHU TE DYQANI' }}
         </router-link>
       </div>
 
       <div v-if="cart.length === 0" class="bg-white p-12 rounded-2xl border border-gray-100 shadow-sm text-center space-y-4">
         <span class="text-4xl block">🛍️</span>
-        <h2 class="text-base font-black text-gray-950 uppercase">SHPORTA JUAJ ÉSHTË BOSHE</h2>
-        <p class="text-xs text-gray-400 font-bold">Mund të ktheheni në faqen kryesore për të vazhduar blerjet.</p>
+        <h2 class="text-base font-black text-gray-950 uppercase">{{ lang === 'en' ? 'YOUR CART IS EMPTY' : 'SHPORTA JUAJ ËSHTË BOSHE' }}</h2>
+        <p class="text-xs text-gray-400 font-bold">{{ lang === 'en' ? 'You can return to the home page to continue shopping.' : 'Mund të ktheheni në faqen kryesore për të vazhduar blerjet.' }}</p>
         <router-link to="/" class="inline-block px-6 py-3 bg-gray-950 text-white text-xs font-black uppercase tracking-wider rounded-xl">
-          FILLO BLERJET
+          {{ lang === 'en' ? 'START SHOPPING' : 'FILLON BLERJET' }}
         </router-link>
       </div>
 
@@ -25,12 +25,12 @@
         
         <div class="md:col-span-7 bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
           <h2 class="text-base font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3">
-            📍 TË DHËNAT E DORËZIMIT
+            📍 {{ lang === 'en' ? 'DELIVERY DETAILS' : 'TË DHËNAT E DORËZIMIT' }}
           </h2>
 
           <form @submit.prevent="handleSubmitOrder" class="space-y-4">
             <div class="space-y-1">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Emri dhe Mbiemri</label>
+              <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider">{{ lang === 'en' ? 'Name and Surname' : 'Emri dhe Mbiemri' }}</label>
               <input 
                 v-model="form.name" 
                 type="text" 
@@ -41,7 +41,7 @@
             </div>
 
             <div class="space-y-1">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Numri i Telefonit</label>
+              <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider">{{ lang === 'en' ? 'Phone Number' : 'Numri i Telefonit' }}</label>
               <input 
                 v-model="form.phone" 
                 type="text" 
@@ -52,22 +52,22 @@
             </div>
 
             <div class="space-y-1">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Adresa e Dorëzimit</label>
+              <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider">{{ lang === 'en' ? 'Delivery Address' : 'Adresa e Dorëzimit' }}</label>
               <textarea 
                 v-model="form.address" 
                 rows="3" 
                 required 
-                placeholder="Lagjja, Rruga, Nr, Qyteti"
+                :placeholder="lang === 'en' ? 'Neighborhood, Street, No., City' : 'Lagjja, Rruga, Nr, Qyteti'"
                 class="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-xl focus:border-gray-900 outline-none resize-none"
               ></textarea>
             </div>
 
             <div class="space-y-1">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Shënimi i Porosisë (Opsionale)</label>
+              <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider">{{ lang === 'en' ? 'Order Note (Optional)' : 'Shënimi i Porosisë (Opsionale)' }}</label>
               <input 
                 v-model="form.note" 
                 type="text" 
-                placeholder="Mos i bi ziles etj."
+                :placeholder="lang === 'en' ? 'Do not ring the bell, etc.' : 'Mos i bi ziles etj.'"
                 class="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-xl focus:border-gray-900 outline-none"
               />
             </div>
@@ -98,15 +98,15 @@
 
           <div class="border-t border-gray-100 pt-4 space-y-2">
             <div class="flex justify-between items-center text-xs font-bold text-gray-500">
-              <span>Nëntotali</span>
+              <span>{{ lang === 'en' ? 'Subtotal' : 'Nëntotali' }}</span>
               <span class="font-mono">€{{ cartTotal.toFixed(2) }}</span>
             </div>
             <div class="flex justify-between items-center text-xs font-bold text-gray-500">
-              <span>Transporti</span>
-              <span class="font-mono text-emerald-600 font-black">FALAS</span>
+              <span>{{ lang === 'en' ? 'Shipping' : 'Transporti' }}</span>
+              <span class="font-mono text-emerald-600 font-black">{{ lang === 'en' ? 'FREE' : 'FALAS' }}</span>
             </div>
             <div class="flex justify-between items-center text-sm font-black text-gray-950 pt-2 border-t border-gray-100">
-              <span>Totali i Përgjithshëm</span>
+              <span>{{ lang === 'en' ? 'Total Amount' : 'Totali i Përgjithshëm' }}</span>
               <span class="font-mono text-emerald-600 text-lg">€{{ cartTotal.toFixed(2) }}</span>
             </div>
           </div>
@@ -121,9 +121,10 @@
 <script setup>
 import { reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { cart, checkoutSubmitGlobal } from '../store/productStore'
+import { cart, checkoutSubmitGlobal, currentLang } from '../store/productStore'
 
 const router = useRouter()
+const lang = currentLang
 
 const form = reactive({
   name: '',
@@ -139,7 +140,7 @@ const cartTotal = computed(() => {
 const handleSubmitOrder = () => {
   const result = checkoutSubmitGlobal(form)
   if (result.success) {
-    alert('Porosia juaj u krijua me sukses!')
+    alert(lang.value === 'en' ? 'Your order has been created successfully!' : 'Porosia juaj u krijua me sukses!')
     router.push('/')
   } else {
     alert(result.message)

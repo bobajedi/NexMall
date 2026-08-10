@@ -1,23 +1,24 @@
-import pg from 'pg';
-import dotenv from 'dotenv';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
 
-dotenv.config();
+// SQLite veritabanı dosyasını projenin içinde otomatik oluşturur
+export async function openDb() {
+  return open({
+    filename: './database.sqlite',
+    driver: sqlite3.Database
+  });
+}
 
-const { Pool } = pg;
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
-
-pool.connect((err, client, release) => {
-  if (err) {
-    return console.error('❌ Veritabanına bağlanırken hata oluştu:', err.stack);
-  }
-  console.log('⚡ PostgreSQL bulut veritabanına başarıyla bağlanıldı!');
-  release();
-});
-
-export default pool;
+// Veritabanını ve kullanıcılar tablosunu otomatik başlatan fonksiyon
+export async function initDb() {
+  const db = await openDb();
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  console.log('⚡ SQLite veritabanı ve users tablosu başarıyla hazırlandı!');
+}

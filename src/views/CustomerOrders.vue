@@ -5,14 +5,15 @@
       <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex justify-between items-center">
         <div>
           <span class="text-[10px] font-black bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md uppercase tracking-wider inline-block mb-1">
-            📦 Paneli i Klientit
+            📦 {{ lang === 'en' ? 'Customer Panel' : 'Paneli i Klientit' }}
           </span>
-          <h1 class="text-xl font-black text-gray-900 uppercase tracking-tight">Porositë e Mia dhe Gjurmimi i Dërgesave</h1>
+          <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tight">{{ lang === 'en' ? 'My Orders and Delivery Tracking' : 'Porositë e Mia dhe Gjurmimi i Dërgesave' }}</h1>
         </div>
         <router-link to="/" class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-xs font-black uppercase rounded-xl transition">
-          ← Kthehu te Ballafaqja
+          ← {{ lang === 'en' ? 'Back to Home' : 'Kthehu te Ballafaqja' }}
         </router-link>
       </div>
+    </div>
 
       <div v-if="myOrders.length > 0" class="space-y-4">
         <div v-for="order in myOrders" :key="order.id" class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
@@ -47,20 +48,20 @@
 
       <div v-else class="bg-white border border-gray-100 rounded-3xl p-12 text-center space-y-3 shadow-sm">
         <span class="text-3xl">📭</span>
-        <h3 class="text-sm font-black text-gray-900 uppercase">Nuk keni asnjë porosi aktive</h3>
-        <p class="text-xs font-bold text-gray-400">Pasi të bëni blerje, statusin e porosisë tuaj mund ta ndiqni këtu.</p>
-        <router-link to="/" class="inline-block mt-2 px-6 py-2.5 bg-[#d61f43] text-white text-xs font-black uppercase rounded-xl transition shadow-md">
-          Fillo Blerjet
-        </router-link>
-      </div>
-
+          <h3 class="text-sm font-black text-gray-900 uppercase">{{ lang === 'en' ? 'You have no active orders' : 'Nuk keni asnjë porosi aktive' }}</h3>
+          <p class="text-xs font-bold text-gray-400">{{ lang === 'en' ? 'Once you shop, you can track your order status here.' : 'Pasi të bëni blerje, statusin e porosisë tuaj mund ta ndiqni këtu.' }}</p>
+          <router-link to="/" class="inline-block mt-2 px-6 py-2.5 bg-[#d61f43] text-white text-xs font-black uppercase rounded-xl transition shadow-md">
+            {{ lang === 'en' ? 'Start Shopping' : 'Fillo Blerjet' }}
+          </router-link>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { orders, currentUser } from '../store/productStore'
+import { orders, currentUser, currentLang } from '../store/productStore'
+
+const lang = currentLang
 
 const myOrders = computed(() => {
   if (!currentUser.value) return orders.value

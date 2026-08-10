@@ -2,16 +2,6 @@
   <div class="min-h-screen bg-slate-50/50 py-8 px-4 md:px-6">
     <div class="max-w-4xl mx-auto bg-white p-5 md:p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
     
-      <div class="flex justify-end gap-2 mb-6">
-        <button 
-          v-for="langOption in ['sq', 'en']" 
-          :key="langOption"
-          @click="currentLang = langOption"
-          :class="['px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition', currentLang === langOption ? 'bg-slate-950 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200']"
-        >
-          {{ langOption === 'sq' ? 'Shqip' : 'English' }}
-        </button>
-      </div>
 
       <div v-if="!product" class="text-center py-20 space-y-4">
         <div class="w-16 h-16 bg-rose-50 text-[#d61f43] rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-inner">
@@ -29,7 +19,7 @@
       <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
         <div class="space-y-4">
-          <div class="bg-slate-100 rounded-2xl w-full max-w-[280px] mx-auto aspect-square overflow-hidden border border-slate-100 flex items-center justify-center relative group shadow-sm">
+          <div class="bg-slate-100 rounded-2xl w-full mx-auto overflow-hidden border border-slate-100 flex items-center justify-center relative group shadow-sm min-h-[420px] max-h-[580px]">
             <img 
               v-if="selectedImage" 
               :src="selectedImage" 
@@ -103,21 +93,18 @@
 </template>
 
 <script setup>
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watchEffect, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { products, addToCartGlobal } from '../store/productStore'
+import { products, addToCartGlobal, currentLang, fetchProductByIdFromApi } from '../store/productStore'
 
 const route = useRoute()
-const productId = Number(route.params.id)
+const productId = computed(() => Number(route.params.id))
 
-const product = computed(() => {
-  return products.value.find(p => p.id === productId)
-})
+const product = ref(null)
 
 const selectedImage = ref('')
-const currentLang = ref('sq') 
 const translations = {
-  sq: {
+  al: {
     notFound: 'Produkti nuk u gjet',
     notFoundDesc: 'Produkti që po kërkoni nuk ekziston ose mund të jetë larguar.',
     backHome: 'Kthehu në Ballafaqe',
@@ -142,6 +129,25 @@ const translations = {
 }
 
 const t = computed(() => translations[currentLang.value])
+
+const loadProduct = async () => {
+  const resolvedProduct = await fetchProductByIdFromApi(productId.value)
+  product.value = resolvedProduct || products.value.find(p => p.id === productId.value) || null
+
+  if (product.value && product.value.images && product.value.images.length > 0) {
+    selectedImage.value = product.value.images[0]
+  } else {
+    selectedImage.value = ''
+  }
+}
+
+watch(productId, () => {
+  loadProduct()
+})
+
+onMounted(() => {
+  loadProduct()
+})
 
 watchEffect(() => {
   if (product.value && product.value.images && product.value.images.length > 0) {

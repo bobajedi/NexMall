@@ -128,7 +128,7 @@
 
           <div v-if="activeTab === 'orders'" class="space-y-6">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3">
-              {{ lang === 'en' ? 'My Orders' : 'Porositë e Mua' }}
+              {{ lang === 'en' ? 'My Orders' : 'Porositë e Mia' }}
             </h2>
 
             <div v-if="userOrders.length > 0" class="space-y-4">

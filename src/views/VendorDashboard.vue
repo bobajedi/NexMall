@@ -156,28 +156,68 @@ export default {
       }
     }
 
+    // "1362 €" -> 1362 Ayrıştırıcı Yardımcı Fonksiyon
+    const parsePrice = (rawValue) => {
+      if (rawValue === null || rawValue === undefined || rawValue === '') return 0
+      if (typeof rawValue === 'number') return rawValue
+
+      let str = String(rawValue).replace(/[^0-9.,]/g, '').trim()
+      if (str.includes(',') && !str.includes('.')) {
+        str = str.replace(',', '.')
+      } else if (str.includes('.') && str.includes(',')) {
+        if (str.indexOf('.') < str.indexOf(',')) {
+          str = str.replace(/\./g, '').replace(',', '.')
+        } else {
+          str = str.replace(/,/g, '')
+        }
+      }
+
+      const num = parseFloat(str)
+      return isNaN(num) ? 0 : num
+    }
+
+    // Gelişmiş Excel ve Akıllı Veri Ayrıştırma Entegrasyonu
     const addImportedProducts = (drafts, sourceLabel, allowZeroPrice = true) => {
       let added = 0
       let skipped = 0
 
       drafts.forEach((draft) => {
-        const hasValidName = draft?.name && String(draft.name).trim().length > 0
-        const hasValidPrice = allowZeroPrice ? true : Number(draft.price) > 0
+        const nameVal = draft?.name || draft?.Name || draft?.Emri || draft?.emri || draft?.urun || draft?.title || ''
+        const hasValidName = nameVal && String(nameVal).trim().length > 0
+        
+        const rawPrice = draft?.price ?? draft?.Price ?? draft?.Cmimi ?? draft?.cmimi ?? draft?.Fiyat ?? draft?.fiyat ?? 0
+        const parsedPrice = parsePrice(rawPrice)
+        const hasValidPrice = allowZeroPrice ? true : parsedPrice > 0
 
         if (!hasValidName || !hasValidPrice) {
           skipped += 1
           return
         }
 
+        const rawStock = draft?.stock ?? draft?.Stock ?? draft?.Stoku ?? draft?.stoku ?? draft?.sasia ?? draft?.quantity ?? 0
+        const parsedStock = typeof rawStock === 'number' ? rawStock : (parseInt(String(rawStock).replace(/[^0-9]/g, ''), 10) || 0)
+
+        // Görsel Alanı İçin Esnek Yakalama
+        let rawImages = draft?.images || draft?.Images || draft?.foto || draft?.Foto || draft?.image || draft?.imageUrl || draft?.url || []
+        let processedImages = []
+        if (Array.isArray(rawImages)) {
+          processedImages = rawImages.filter(img => img && String(img).trim() !== '')
+        } else if (typeof rawImages === 'string' && rawImages.trim() !== '') {
+          processedImages = [rawImages.trim()]
+        }
+        if (processedImages.length === 0) {
+          processedImages = ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500']
+        }
+
         const newProduct = {
           id: Date.now() + Math.floor(Math.random() * 1000) + added,
-          name: String(draft.name || draft.Name || '').trim().toUpperCase(),
-          price: Number(draft.price || draft.Price || draft.Cmimi || draft.Fiyat) || 0,
-          stock: Number(draft.stock || draft.Stock || draft.Stoku) || 0,
+          name: String(nameVal).trim().toUpperCase(),
+          price: parsedPrice,
+          stock: parsedStock,
           shopName: currentActiveShop.value,
-          category: draft.category || draft.Category || draft.Kategoria || 'TË GJITHA',
-          description: draft.description || draft.Description || draft.Pershkrimi || draft.Aciklama || '',
-          images: draft.images || draft.Images || ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500']
+          category: String(draft?.category || draft?.Category || draft?.Kategoria || draft?.kategoria || 'TË GJITHA').trim().toUpperCase(),
+          description: String(draft?.description || draft?.Description || draft?.Pershkrimi || draft?.pershkrimi || draft?.Aciklama || '').trim(),
+          images: processedImages
         }
 
         products.value.push(newProduct)
@@ -211,9 +251,10 @@ export default {
           return
         }
 
-        const drafts = rows
-          .map((row) => normalizeImportedRow(row))
-          .filter((row) => row?.name)
+        const drafts = rows.map((row) => {
+          const norm = typeof normalizeImportedRow === 'function' ? normalizeImportedRow(row) : {}
+          return { ...row, ...norm }
+        })
 
         addImportedProducts(drafts, 'Excel', true)
         excelUploadMessage.value = lang.value === 'en'
@@ -372,6 +413,7 @@ export default {
       tickets,
       users,
       lang,
+      currentActiveShop,
       handleFileUpload,
       handleProfileAvatarUpload,
       handleCreateProduct,
@@ -393,6 +435,7 @@ export default {
       triggerExcelUpload,
       handleExcelUpload,
       productsExpanded,
+      exportToCSV,
       handleLogout
     }
   }
@@ -853,7 +896,7 @@ export default {
               <div v-if="vendorProducts.length > 0" v-show="productsExpanded" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div v-for="product in vendorProducts" :key="product.id" class="border border-gray-100 bg-gray-50 rounded-2xl p-3 flex gap-3 items-start justify-between">
                   <div class="flex items-start gap-3 min-w-0">
-                    <img :src="product.images[0]" class="w-12 h-12 object-cover rounded-xl border border-gray-200 shrink-0" />
+                    <img :src="(product.images && product.images[0]) || product.image || product.imageUrl || product.foto || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500'" class="w-12 h-12 object-cover rounded-xl border border-gray-200 shrink-0" />
                     <div class="min-w-0">
                       <h4 class="text-[11px] font-black text-gray-900 uppercase flex items-center gap-2 truncate">
                         {{ product.name }}
@@ -1085,7 +1128,7 @@ export default {
 
         </div>
       </div>
-
+      
     </div>
   </div>
 </template>

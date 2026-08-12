@@ -1,6 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#f4f6f9] text-gray-800 font-sans antialiased selection:bg-[#d61f43]/20 selection:text-[#d61f43] flex flex-col justify-between">
     
+    <!-- ÜST BİLGİ BARI -->
     <header class="bg-[#d61f43] text-white text-[11px] font-black tracking-wider py-2 px-8 shadow-sm">
       <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
         <div class="flex items-center gap-2">
@@ -23,17 +24,18 @@
       </div>
     </header>
 
-    <!-- SABİT YÜKSEKLİK VE KUSURSUZ HİZALAMA -->
+    <!-- ANA NAVİGASYON BARI -->
     <nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 px-4 md:px-8 h-20 flex items-center shadow-sm">
       <div class="max-w-7xl mx-auto w-full flex items-center justify-between gap-4">
         
-        <!-- LOGO (SABİT ALAN İÇİNDE BÜYÜK VE NET) -->
+        <!-- LOGO -->
         <div class="flex items-center shrink-0 h-full py-1">
           <button type="button" @click="router.push('/')" class="flex items-center h-full focus:outline-none cursor-pointer">
             <img src="/src/store/NexMall.png" alt="NexMall Logo" class="h-29 w-auto object-contain hover:opacity-95 transition" />
           </button>
         </div>
 
+        <!-- ARAMA BARI -->
         <div class="flex-1 max-w-xl relative flex items-center mx-2">
           <input 
             v-model="searchQuery"
@@ -46,17 +48,20 @@
           </button>
         </div>
 
+        <!-- SAĞ EYLEM BUTONLARI -->
         <div class="flex items-center gap-3 text-xs font-black uppercase tracking-wider relative">
           
           <router-link to="/" class="hidden md:inline-block hover:text-[#d61f43] text-gray-600 transition mr-1">
             {{ lang === 'al' ? 'Kryefaqja' : 'Home' }}
           </router-link>
 
+          <!-- WISHLIST -->
           <router-link to="/wishlist" class="relative p-2 px-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition text-gray-900 flex items-center gap-1.5 border border-gray-100 shadow-sm" active-class="bg-red-50 text-[#d61f43] border-red-200">
             <span class="text-[#d61f43] transform hover:scale-110 transition">❤️</span>
             <span class="font-mono text-xs font-bold">{{ wishlistCount }}</span>
           </router-link>
 
+          <!-- SEPET -->
           <button @click="isCartOpen = true" class="relative px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition text-gray-900 flex items-center gap-2 border border-gray-200 shadow-sm active:scale-95 cursor-pointer">
             <span>🛒</span>
             <span class="font-mono text-xs font-bold">€{{ cartTotal.toFixed(2) }}</span>
@@ -67,6 +72,7 @@
           
           <span class="h-6 w-px bg-gray-200 mx-1"></span>
 
+          <!-- KULLANICI / MENÜ DROPDOWN TOGGLE -->
           <button 
             @click.stop="isDropdownOpen = !isDropdownOpen"
             class="p-2.5 bg-gray-950 text-white rounded-xl hover:bg-gray-800 transition flex items-center justify-center shadow-md focus:outline-none active:scale-95 cursor-pointer"
@@ -78,6 +84,7 @@
             </div>
           </button>
 
+          <!-- DROPDOWN MENÜ -->
           <div 
             v-if="isDropdownOpen" 
             @click.stop
@@ -190,8 +197,10 @@
       </div>
     </div>
 
+    <!-- SEPET ÇEKMECESİ -->
     <CartDrawer />
 
+    <!-- ANA İÇERİK SAYFASI -->
     <main class="relative flex-1">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
@@ -200,6 +209,7 @@
       </router-view>
     </main>
 
+    <!-- FOOTER -->
     <footer class="bg-white border-t border-gray-200 mt-16 py-8 px-4 md:px-8 text-gray-500 text-xs">
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-2">

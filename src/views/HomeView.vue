@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen bg-gray-50 pb-20">
 
-    <div class="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-4">
+    <div id="flash-deals" class="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-4">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-        <div class="lg:col-span-8 relative bg-gradient-to-r from-gray-950 via-gray-900 to-[#d61f43] rounded-3xl overflow-hidden shadow-xl text-white p-8 md:p-10 flex flex-col justify-between">
+        <div class="lg:col-span-8 relative bg-linear-to-r from-gray-950 via-gray-900 to-[#d61f43] rounded-3xl overflow-hidden shadow-xl text-white p-8 md:p-10 flex flex-col justify-between">
           <div class="space-y-3 max-w-lg z-10">
             <span class="inline-block px-3 py-1 bg-white text-gray-950 text-[9px] font-black uppercase tracking-widest rounded-full shadow">
               🔥 {{ lang === 'en' ? 'MEGA SEASON DEAL' : 'OFERTA MEGA E SEZONIT' }}
@@ -29,7 +29,7 @@
         </div>
 
         <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-          <div class="bg-gradient-to-br from-[#d61f43] to-red-900 rounded-3xl p-5 text-white shadow-lg flex items-center justify-between relative overflow-hidden">
+          <div class="bg-linear-to-br from-[#d61f43] to-red-900 rounded-3xl p-5 text-white shadow-lg flex items-center justify-between relative overflow-hidden">
             <div class="space-y-1 z-10">
               <span class="px-2 py-0.5 bg-white/20 text-white text-[8px] font-black uppercase tracking-widest rounded">
                 {{ lang === 'en' ? 'SPECIAL CAMPAIGN' : 'FUSHATË SPECIALE' }}
@@ -55,29 +55,47 @@
       </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 md:px-8 mt-8">
+    <div id="explore-products" class="max-w-7xl mx-auto px-4 md:px-8 mt-8">
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
 
         <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
           <div>
-            <h3 class="text-xs font-black text-gray-950 uppercase tracking-widest border-b border-gray-100 pb-3 mb-4">
-              🗂️ {{ lang === 'en' ? 'CATEGORIES' : 'KATEGORITË' }}
-            </h3>
-            <div class="space-y-2">
-              <button 
-                v-for="cat in categories" 
-                :key="cat"
-                @click="selectedCategory = cat"
-                :class="[
-                  'w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center justify-between',
-                  selectedCategory === cat 
-                    ? 'bg-gray-950 text-white' 
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                ]"
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+              <h3 class="text-xs font-black text-gray-950 uppercase tracking-widest">
+                🗂️ {{ lang === 'en' ? 'CATEGORIES' : 'KATEGORITË' }}
+              </h3>
+              <button
+                type="button"
+                @click="showAllCategories = !showAllCategories"
+                class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-[#d61f43] hover:text-[#b5102b] transition"
               >
-                <span>{{ cat }}</span>
-                <span class="text-[10px] opacity-60">›</span>
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#d61f43] text-[#d61f43]">
+                  {{ showAllCategories ? '−' : '+' }}
+                </span>
+                <span>
+                  {{ showAllCategories ? (lang === 'al' ? 'Mbyll' : 'Collapse') : (lang === 'al' ? 'Të gjitha' : 'Show all') }}
+                </span>
               </button>
+            </div>
+            <div class="space-y-2 max-h-60 overflow-y-auto pr-1 transition-all">
+              <button 
+                  type="button"
+                  v-for="cat in visibleCategories" 
+                  :key="cat"
+                  @click="selectCategory(cat)"
+                  :class="[
+                    'w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center justify-between',
+                    selectedCategory === cat 
+                      ? 'bg-gray-950 text-white' 
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  ]"
+                >
+                  <span>{{ cat }}</span>
+                  <span class="text-[10px] opacity-60">›</span>
+                </button>
+            </div>
+            <div v-if="!showAllCategories && remainingCategoryCount > 0" class="text-[10px] text-gray-500 font-semibold pt-2">
+              {{ remainingCategoryCount }} {{ lang === 'al' ? 'kategori të tjera' : 'more categories' }}
             </div>
           </div>
 
@@ -225,16 +243,18 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { products, categories, users, addToCartGlobal, wishlist, toggleWishlist, currentLang, searchQuery } from '../store/productStore'
+import { products, categories, users, addToCartGlobal, wishlist, toggleWishlist, currentLang, searchQuery, selectedCategory, setSelectedCategory } from '../store/productStore'
 
 const router = useRouter()
 const route = useRoute()
 const lang = currentLang
 
-const selectedCategory = ref('TË GJITHA')
+// use global selectedCategory from store so header category strip syncs with this view
+// `selectedCategory` is a ref imported from the central store
 const sortBy = ref('default')
 const minPrice = ref(null)
 const maxPrice = ref(null)
+const showAllCategories = ref(false)
 
 const categoryAliases = {
   drite: ['elektronike', 'ndriçim', 'light', 'llampë', 'ampul', 'lamp'],
@@ -262,14 +282,23 @@ const dynamicBrands = computed(() => {
   return [...new Set([...userShops, ...productShops])]
 })
 
+const visibleCategories = computed(() => {
+  return showAllCategories.value ? categories.value : categories.value.slice(0, 5)
+})
+
+const remainingCategoryCount = computed(() => Math.max(0, categories.value.length - 5))
+
 const filteredProducts = computed(() => {
   let result = [...products.value]
 
-  if (selectedCategory.value !== 'TË GJITHA') {
-    result = result.filter(p => 
-      (p.name && p.name.toUpperCase().includes(selectedCategory.value)) || 
-      (p.category && p.category.toUpperCase() === selectedCategory.value)
-    )
+  const sel = (selectedCategory.value || '').toString().toUpperCase().trim()
+  if (sel && sel !== 'TË GJITHA') {
+    result = result.filter(p => {
+      const name = (p.name || '').toString().toUpperCase()
+      const cat = (p.category || '').toString().toUpperCase()
+      // match exact category or inclusion to be more flexible
+      return name.includes(sel) || cat === sel || cat.includes(sel)
+    })
   }
 
   if (selectedBrands.value.length > 0) {
@@ -305,6 +334,10 @@ const filteredProducts = computed(() => {
 
   return result
 })
+
+const selectCategory = (cat) => {
+  setSelectedCategory(cat)
+}
 
 const isWishlisted = (id) => wishlist.value.some(item => item.id === id)
 const goToDetail = (id) => router.push(`/product/${id}`)

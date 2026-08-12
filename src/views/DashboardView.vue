@@ -71,6 +71,30 @@
         <div class="lg:col-span-2 space-y-6">
           <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
+              📦 Produktet e Mia
+            </h2>
+
+            <div v-if="shopProducts.length > 0" class="space-y-3">
+              <div v-for="product in shopProducts" :key="product.id" class="border border-gray-100 bg-gray-50 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <img :src="product.images?.[0] || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500'" class="w-12 h-12 object-cover rounded-xl border border-gray-200 shrink-0" />
+                  <div class="min-w-0">
+                    <h3 class="text-xs font-black text-gray-900 uppercase truncate">{{ product.name }}</h3>
+                    <p class="text-[10px] text-gray-500 font-bold mt-0.5">€{{ product.price }} | {{ lang.value === 'en' ? 'Stock' : 'Stoku' }}: {{ product.stock }}</p>
+                  </div>
+                </div>
+                <button type="button" @click="handleDeleteProduct(product.id)" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 font-black text-[9px] uppercase rounded-lg transition shrink-0">
+                  {{ lang.value === 'en' ? 'Delete' : 'Fshi' }}
+                </button>
+              </div>
+            </div>
+            <div v-else class="text-center py-6 text-gray-400 text-xs font-bold uppercase">
+              {{ lang.value === 'en' ? 'No products yet.' : 'Nuk ka ende produkte.' }}
+            </div>
+          </div>
+
+          <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+            <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
               📦 Pisha e Gjurmimit të Porosive (CRM)
             </h2>
 
@@ -100,7 +124,7 @@
 <script setup>
 import { ref, inject, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { currentUser, products, orders, saveProductsToStorage, logoutUser } from '../store/productStore'
+import { currentUser, products, orders, saveProductsToStorage, logoutUser, deleteProduct } from '../store/productStore'
 
 const router = useRouter()
 const lang = inject('lang', ref('al'))
@@ -114,6 +138,11 @@ const form = ref({ name: '', price: 0, stock: 10, category: 'fashion', images: [
 const filteredOrders = computed(() => {
   if (!currentUser.value) return []
   return orders.value.filter(order => order.items.some(item => item.shopName === currentUser.value?.shopName))
+})
+
+const shopProducts = computed(() => {
+  if (!currentUser.value) return []
+  return products.value.filter(product => product.shopName === currentUser.value?.shopName)
 })
 
 const handleCreateProduct = () => {
@@ -147,6 +176,12 @@ const handleImagesUpload = (event) => {
     }
     reader.readAsDataURL(file)
   })
+}
+
+const handleDeleteProduct = (productId) => {
+  if (confirm(lang.value === 'en' ? 'Are you sure you want to delete this product?' : 'A jeni i sigurt që dëshironi ta fshini këtë produkt?')) {
+    deleteProduct(productId)
+  }
 }
 
 const handleLogout = () => {

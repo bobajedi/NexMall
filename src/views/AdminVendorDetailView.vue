@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { users, orders, currentLang } from '../store/productStore'
+import { users, orders, products, currentLang, saveProductsToStorage } from '../store/productStore'
 
 const lang = currentLang
 
@@ -39,12 +39,46 @@ const totalRevenue = computed(() => {
 const commissionFee = computed(() => totalRevenue.value * 0.10)
 const estimatedExpense = computed(() => totalRevenue.value * 0.40)
 const netProfit = computed(() => totalRevenue.value - commissionFee.value - estimatedExpense.value)
+
+// Sadece bu satıcıya/dyqan'a ait ürünler
+const vendorProducts = computed(() => {
+  if (!vendor.value?.shopName) return []
+  return products.value.filter(p => p.shopName === vendor.value.shopName)
+})
+
+// Tek bir ürünü silme
+const handleDeleteSingleProduct = (productId) => {
+  const confirmMsg = lang.value === 'en'
+    ? 'Are you sure you want to delete this product?'
+    : 'A jeni të sigurt që dëshironi të fshini këtë produkt?'
+
+  if (confirm(confirmMsg)) {
+    products.value = products.value.filter(p => p.id !== productId)
+    saveProductsToStorage()
+  }
+}
+
+// Bu satıcının TÜM ürünlerini toplu silme
+const handleDeleteAllVendorProducts = () => {
+  if (!vendor.value?.shopName) return
+  
+  const confirmMsg = lang.value === 'en'
+    ? `⚠️ ADMIN WARNING: Are you sure you want to delete ALL products belonging to "${vendor.value.shopName}"?`
+    : `⚠️ KUJDES ADMIN: A jeni të sigurt që dëshironi të fshini TË GJITHA produktet e dyqanit "${vendor.value.shopName}"?`
+
+  if (confirm(confirmMsg)) {
+    products.value = products.value.filter(p => p.shopName !== vendor.value.shopName)
+    saveProductsToStorage()
+    alert(lang.value === 'en' ? 'All products for this shop have been deleted!' : 'Të gjitha produktet e këtij dyqani u fshinë!')
+  }
+}
 </script>
 
 <template>
   <div class="min-h-screen bg-[#f4f6f9] py-8 px-4 md:px-8">
     <div class="max-w-7xl mx-auto space-y-8">
       
+      <!-- Top Header Bar -->
       <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <span class="text-[10px] font-black bg-[#d61f43]/10 text-[#d61f43] px-2.5 py-1 rounded-md uppercase tracking-wider inline-block mb-1">
@@ -54,7 +88,7 @@ const netProfit = computed(() => totalRevenue.value - commissionFee.value - esti
             🏪 {{ vendor?.shopName || (lang === 'en' ? 'Unknown Shop' : 'Dyqan i Panjohur') }}
           </h1>
         </div>
-        <router-link to="/dashboard" class="px-4 py-2 bg-gray-900 text-white text-xs font-black uppercase rounded-xl transition">
+        <router-link to="/dashboard" class="px-4 py-2 bg-gray-900 text-white text-xs font-black uppercase rounded-xl transition hover:bg-gray-800">
           Kthehu te Paneli i Adminit
         </router-link>
       </div>
@@ -64,6 +98,7 @@ const netProfit = computed(() => totalRevenue.value - commissionFee.value - esti
       </div>
 
       <template v-else>
+        <!-- Profile Card -->
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
           <div class="flex items-center gap-4">
             <img :src="vendor?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'" class="w-16 h-16 rounded-2xl object-cover border border-gray-200" />
@@ -100,6 +135,7 @@ const netProfit = computed(() => totalRevenue.value - commissionFee.value - esti
           </div>
         </div>
 
+        <!-- Financial Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-2">
             <span class="text-[10px] font-black uppercase text-gray-400">{{ lang === 'en' ? 'Gross Revenue' : 'Qarkullimi Bruto (Të Ardhurat)' }}</span>
@@ -119,9 +155,60 @@ const netProfit = computed(() => totalRevenue.value - commissionFee.value - esti
           </div>
         </div>
 
+        <!-- Vendor Products & Bulk Delete Section -->
+        <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+            <div>
+              <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider">
+                📦 {{ lang === 'en' ? 'Products of this Shop' : 'Produktet e këtij Dyqani' }} ({{ vendorProducts.length }})
+              </h2>
+              <p class="text-[11px] font-bold text-gray-400">
+                {{ lang === 'en' ? 'Manage or clear products listed by this specific shop.' : 'Menaxho ose fshi të gjitha produktet e këtij dyqani.' }}
+              </p>
+            </div>
+            
+            <button 
+              v-if="vendorProducts.length > 0"
+              @click="handleDeleteAllVendorProducts" 
+              class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1.5 self-start sm:self-auto">
+              🗑️ {{ lang === 'en' ? 'Delete All Products of this Shop' : 'Fshi të Gjitha Produktet e këtij Dyqani' }}
+            </button>
+          </div>
+
+          <div v-if="vendorProducts.length === 0" class="text-center py-8 text-gray-400 text-xs font-bold uppercase">
+            {{ lang === 'en' ? 'No products registered for this shop.' : 'Nuk ka produkte të regjistruara për këtë dyqan.' }}
+          </div>
+
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div 
+              v-for="prod in vendorProducts" 
+              :key="prod.id" 
+              class="border border-gray-100 bg-gray-50 rounded-2xl p-3 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 overflow-hidden">
+                <img 
+                  :src="prod.images?.[0] || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500'" 
+                  class="w-12 h-12 rounded-xl object-cover border border-gray-200 flex-shrink-0" 
+                />
+                <div class="min-w-0">
+                  <p class="text-xs font-black text-gray-900 truncate">{{ prod.name }}</p>
+                  <p class="text-[11px] font-bold text-emerald-600">€{{ Number(prod.price).toFixed(2) }}</p>
+                  <p class="text-[10px] text-gray-400 uppercase font-bold">{{ prod.category || 'TË GJITHA' }}</p>
+                </div>
+              </div>
+              <button 
+                @click="handleDeleteSingleProduct(prod.id)"
+                class="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-xl text-xs transition flex-shrink-0"
+                :title="lang === 'en' ? 'Delete Product' : 'Fshi Produktin'">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales History -->
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
           <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
-            📦 {{ lang === 'en' ? 'Sales History & Details for this Shop' : 'Historiku i Shitjeve & Detajet për këtë Dyqan' }}
+            📊 {{ lang === 'en' ? 'Sales History & Details for this Shop' : 'Historiku i Shitjeve & Detajet për këtë Dyqan' }}
           </h2>
 
           <div v-if="vendorOrderGroups.length === 0" class="text-center py-8 text-gray-400 text-xs font-bold uppercase">

@@ -8,7 +8,7 @@ export const activeVendorProfile = ref(null)
 export const adminReplyInputs = ref({})
 
 export const searchQuery = ref('')
-export const selectedCategory = ref('TË GJITHA')
+export const selectedCategory = ref('') // Boş başlatmak "Të gjitha" (Tüm Ürünler) durumunu kusursuz yönetir
 export const sortBy = ref('default')
 export const minPrice = ref(null)
 export const maxPrice = ref(null)
@@ -75,12 +75,14 @@ export const currentUser = ref(readStoredUser())
 
 const categorySearchAliases = {
   drite: ['elektronike', 'ndriçim', 'light', 'llampë', 'ampul', 'lamp'],
-  ampul: ['elektronike', 'ndriçim', 'light', 'llampë', 'lamp'],
+  ampul: ['elektronike', 'ndriçim', 'light', 'llampë', 'ampul', 'lamp'],
   light: ['elektronike', 'ndriçim', 'lighting', 'llampë', 'ampul'],
   scooter: ['scooter', 'trotinet', 'troti', 'elektronik', 'elektronike'],
   trotinete: ['scooter', 'trotinet', 'troti'],
   laptop: ['tech', 'elektronike', 'tek']
 }
+
+const ALL_CATEGORIES_LABEL = 'TË GJITHA'
 
 const categoryMatchesQuery = (category, query) => {
   if (!category) return false
@@ -90,22 +92,60 @@ const categoryMatchesQuery = (category, query) => {
   return aliases ? aliases.some(alias => safeCategory.includes(alias)) : false
 }
 
-export const categories = ref(savedCategories ? JSON.parse(savedCategories) : [
-  'TË GJITHA', 'VESHJE', 'KËPUCË', 'AKSESUAR', 'T-SHIRT', 'ELEKTRONIKE'
-])
+const normalizeCategory = (cat) => {
+  if (!cat) return ALL_CATEGORIES_LABEL
+  const str = String(cat).trim()
+  if (str.toLowerCase() === 'të gjitha' || str.toLowerCase() === 'all' || str.toLowerCase() === 'të gjitha') {
+    return ALL_CATEGORIES_LABEL
+  }
+  return str.toUpperCase()
+}
+
+const defaultCategories = [
+  'Të gjitha',
+  'VESHJE', 'KËPUCË', 'AKSESUAR', 'T-SHIRT', 'ELEKTRONIKE', 'SHTËPIA', 'SPORT', 'FËMIJË', 'BEAUTY', 'TOYS',
+  'KUZHINË', 'KONTOR', 'GADGETS', 'BIÇIKLETË', 'HIGJIENË', 'MOBILIE', 'KOSMETIKË', 'PNP', 'EKOLOGJI', 'DEKOR',
+  'FITNESS', 'KAMERA', 'SMARTPHONE', 'KOMPJUTER', 'SMART HOME', 'MOBILJE', 'AROMA', 'MODË', 'AUTO'
+]
+
+const loadedCategories = savedCategories ? JSON.parse(savedCategories) : []
+const normalizedCategories = [...new Set([
+  'Të gjitha',
+  ...defaultCategories.filter(c => c.toLowerCase() !== 'të gjitha' && c.toLowerCase() !== 'all'),
+  ...loadedCategories.map(c => String(c).trim())
+].filter(Boolean))]
+
+export const categories = ref(normalizedCategories)
 
 export const saveCategoriesToStorage = () => {
   localStorage.setItem('nexmall_categories', JSON.stringify(categories.value))
 }
 
 export const addCategoryGlobal = (catName) => {
-  const formatted = catName.trim().toUpperCase()
-  if (formatted && !categories.value.includes(formatted)) {
+  const formatted = String(catName).trim()
+  if (formatted && !categories.value.map(c => c.toLowerCase()).includes(formatted.toLowerCase())) {
     categories.value.push(formatted)
     saveCategoriesToStorage()
     return { success: true }
   }
   return { success: false, message: 'Kjo kategori ekziston tashmë ose është e pavlefshme!' }
+}
+
+export const setSelectedCategory = (cat) => {
+  if (!cat || cat === '' || String(cat).toLowerCase() === 'të gjitha' || String(cat).toLowerCase() === 'all' || String(cat).toUpperCase() === ALL_CATEGORIES_LABEL) {
+    selectedCategory.value = ''
+    return
+  }
+  
+  const normalized = String(cat).trim()
+  const exists = categories.value.find(c => c.toLowerCase() === normalized.toLowerCase())
+  if (!exists) {
+    categories.value.push(normalized)
+    saveCategoriesToStorage()
+    selectedCategory.value = normalized
+  } else {
+    selectedCategory.value = exists
+  }
 }
 
 export const products = ref(savedProducts ? JSON.parse(savedProducts) : [
@@ -169,10 +209,14 @@ if (typeof window !== 'undefined') {
 }
 
 export const filteredProducts = computed(() => {
+  const sel = selectedCategory.value ? String(selectedCategory.value).trim().toLowerCase() : ''
   let result = [...products.value]
 
-  if (selectedCategory.value && selectedCategory.value !== 'TË GJITHA') {
-    result = result.filter(p => p.category?.toUpperCase() === selectedCategory.value.toUpperCase())
+  if (sel && sel !== 'të gjitha' && sel !== 'all' && sel !== 'të gjitha') {
+    result = result.filter(p => {
+      const pCat = p.category ? String(p.category).trim().toLowerCase() : ''
+      return pCat === sel
+    })
   }
 
   if (searchQuery.value && searchQuery.value.trim() !== '') {

@@ -1,6 +1,7 @@
 <script>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { normalizeImportedRow } from '../utils/productImport'
 import { 
   currentUser, 
   products, 
@@ -42,6 +43,13 @@ export default {
       description: '',
       images: []
     })
+
+    const excelInput = ref(null)
+    const excelUploadMessage = ref('')
+
+    const triggerExcelUpload = () => {
+      excelInput.value?.click()
+    }
 
     const ticketForm = ref({
       subject: '',
@@ -99,11 +107,41 @@ export default {
 
     const usersPanelCollapsed = ref(true)
     const supportTicketsCollapsed = ref(true)
+    const productsExpanded = ref(true)
 
     const vendorTickets = computed(() => {
       if (!currentUser.value) return []
       return tickets.value.filter(t => t.senderEmail === currentUser.value.email || t.shopName === currentUser.value.shopName)
     })
+
+    // --- SİLME FONKSİYONLARI ---
+
+    // 1. Satıcının (veya incelenen mağazanın) TÜM ürünlerini silme
+    const handleClearAllMyProducts = () => {
+      const shopToClear = currentActiveShop.value
+      const confirmMsg = lang.value === 'en'
+        ? `⚠️ WARNING: Are you sure you want to delete ALL products belonging to "${shopToClear}"?`
+        : `⚠️ KUJDES: A jeni të sigurt që dëshironi të fshini TË GJITHA produktet e dyqanit "${shopToClear}"?`
+
+      if (confirm(confirmMsg)) {
+        products.value = products.value.filter(p => p.shopName !== shopToClear)
+        saveProductsToStorage()
+        alert(lang.value === 'en' ? 'All products for this shop have been deleted!' : 'Të gjitha produktet e këtij dyqani u fshinë!')
+      }
+    }
+
+    // 2. Admin'in sistemdeki TÜM ürünleri toplu silmesi
+    const handleClearAllSystemProducts = () => {
+      const confirmMsg = lang.value === 'en'
+        ? '⚠️ ADMIN WARNING: Are you sure you want to delete ALL products in the ENTIRE system?'
+        : '⚠️ KUJDES ADMIN: A jeni të sigurt që dëshironi të fshini TË GJITHA produktet në të gjithë sistemin?'
+
+      if (confirm(confirmMsg)) {
+        products.value = []
+        saveProductsToStorage()
+        alert(lang.value === 'en' ? 'All system products have been deleted!' : 'Të gjitha produktet e sistemit u fshinë!')
+      }
+    }
 
     const handleFileUpload = (e) => {
       const files = e.target.files
@@ -114,7 +152,81 @@ export default {
         reader.onload = (uploadEvent) => {
           form.value.images.push(uploadEvent.target.result)
         }
-        reader.readAsDataURL(files[0])
+        reader.readAsDataURL(files[i])
+      }
+    }
+
+    const addImportedProducts = (drafts, sourceLabel, allowZeroPrice = true) => {
+      let added = 0
+      let skipped = 0
+
+      drafts.forEach((draft) => {
+        const hasValidName = draft?.name && String(draft.name).trim().length > 0
+        const hasValidPrice = allowZeroPrice ? true : Number(draft.price) > 0
+
+        if (!hasValidName || !hasValidPrice) {
+          skipped += 1
+          return
+        }
+
+        const newProduct = {
+          id: Date.now() + Math.floor(Math.random() * 1000) + added,
+          name: String(draft.name || draft.Name || '').trim().toUpperCase(),
+          price: Number(draft.price || draft.Price || draft.Cmimi || draft.Fiyat) || 0,
+          stock: Number(draft.stock || draft.Stock || draft.Stoku) || 0,
+          shopName: currentActiveShop.value,
+          category: draft.category || draft.Category || draft.Kategoria || 'TË GJITHA',
+          description: draft.description || draft.Description || draft.Pershkrimi || draft.Aciklama || '',
+          images: draft.images || draft.Images || ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500']
+        }
+
+        products.value.push(newProduct)
+        added += 1
+      })
+
+      if (added > 0) {
+        saveProductsToStorage()
+      }
+
+      alert(
+        lang.value === 'en'
+          ? `${added} products imported from ${sourceLabel}. ${skipped} rows skipped.`
+          : `${added} produkte u importuan nga ${sourceLabel}. ${skipped} rreshta u anashkaluan.`
+      )
+    }
+
+    const handleExcelUpload = async (e) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      try {
+        const XLSX = await import('xlsx')
+        const arrayBuffer = await file.arrayBuffer()
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' })
+
+        if (!rows.length) {
+          alert(lang.value === 'en' ? 'Excel file is empty.' : 'Skedari Excel është bosh.')
+          return
+        }
+
+        const drafts = rows
+          .map((row) => normalizeImportedRow(row))
+          .filter((row) => row?.name)
+
+        addImportedProducts(drafts, 'Excel', true)
+        excelUploadMessage.value = lang.value === 'en'
+          ? `${drafts.length} products added from Excel.`
+          : `${drafts.length} produkte u shtuan nga Excel.`
+      } catch (error) {
+        console.error(error)
+        alert(lang.value === 'en' ? 'Unable to parse the Excel file.' : 'Nuk u mund të analizonte skedarin Excel.')
+        excelUploadMessage.value = lang.value === 'en'
+          ? 'Excel upload failed.'
+          : 'Ngarkimi i Excel dështoi.'
+      } finally {
+        e.target.value = ''
       }
     }
 
@@ -264,6 +376,8 @@ export default {
       handleProfileAvatarUpload,
       handleCreateProduct,
       handleDeleteProduct,
+      handleClearAllMyProducts,
+      handleClearAllSystemProducts,
       updateOrderStatus,
       inspectUserShop,
       returnToAdminPanel,
@@ -274,7 +388,11 @@ export default {
       handleAddNewCategory,
       handleSendTicket,
       handleAdminReply,
-      exportToCSV,
+      excelInput,
+      excelUploadMessage,
+      triggerExcelUpload,
+      handleExcelUpload,
+      productsExpanded,
       handleLogout
     }
   }
@@ -285,6 +403,7 @@ export default {
   <div class="min-h-screen bg-[#f4f6f9] py-8 px-4 md:px-8">
     <div class="max-w-7xl mx-auto space-y-8">
       
+      <!-- Top Header -->
       <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div class="flex items-center gap-4">
           <div class="relative group">
@@ -323,8 +442,10 @@ export default {
         </div>
       </div>
 
+      <!-- ADMIN VIEW -->
       <div v-if="currentUser?.role === 'admin' && !viewingShopName" class="space-y-8">
         
+        <!-- Stats Modals Triggers -->
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div @click="activeModal = 'allProducts'" class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between cursor-pointer hover:border-gray-900 transition group">
             <div>
@@ -367,6 +488,7 @@ export default {
           </div>
         </div>
 
+        <!-- Categories Section -->
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
           <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
             🗂️ {{ lang === 'en' ? 'Manage and Add System Categories' : 'Menaxho dhe Shto Kategoritë e Sistemit' }}
@@ -389,6 +511,7 @@ export default {
           </div>
         </div>
 
+        <!-- Pending Applications Section -->
         <div v-if="pendingVendors.length > 0" class="bg-amber-50/60 border border-amber-200 rounded-3xl p-6 space-y-4">
           <h2 class="text-sm font-black text-amber-900 uppercase tracking-wider border-b border-amber-200 pb-2">
             ⏳ {{ lang === 'en' ? 'Pending Vendor Applications' : 'Aplikimet e Shitësve në Pritje të Miratimit' }}
@@ -414,6 +537,7 @@ export default {
           </div>
         </div>
 
+        <!-- Support Tickets Admin Section -->
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2 sm:border-b-0 sm:pb-0">
@@ -473,6 +597,7 @@ export default {
           </div>
         </div>
 
+        <!-- Users Table -->
         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2 sm:border-b-0 sm:pb-0">
@@ -533,8 +658,10 @@ export default {
 
       </div>
 
+      <!-- VENDOR VIEW / INSPECTION VIEW -->
       <div v-if="currentUser?.role === 'vendor' || viewingShopName" class="space-y-8">
         
+        <!-- Vendor Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
@@ -569,6 +696,7 @@ export default {
           </div>
         </div>
 
+        <!-- Vendor Messaging to Admin -->
         <div v-if="!viewingShopName" class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
           <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
             💬 {{ lang === 'en' ? 'Support & Messaging Center with Administrator' : 'Qendra e Mbështetjes dhe Mesazheve me Administratorin' }}
@@ -616,8 +744,26 @@ export default {
           </form>
         </div>
 
+        <!-- Excel Upload & Product Creation Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
+          <!-- Excel Upload Section -->
+          <div class="lg:col-span-3 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+            <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
+              📥 {{ lang === 'en' ? 'Quick Excel Upload' : 'Hızlı Excel Yükleme' }}
+            </h2>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+              <button type="button" @click="triggerExcelUpload" class="inline-flex items-center justify-center px-6 py-3 bg-[#d61f43] hover:bg-[#b51433] text-white font-black text-xs uppercase tracking-wider rounded-xl transition shadow-md">
+                {{ lang === 'en' ? 'Select Excel / CSV and Upload' : 'Excel / CSV Seç ve Yükle' }}
+              </button>
+              <span v-if="excelUploadMessage" class="text-[11px] font-bold text-gray-700">
+                {{ excelUploadMessage }}
+              </span>
+            </div>
+            <input ref="excelInput" type="file" accept=".xlsx,.xls,.csv" @change="handleExcelUpload" class="hidden" />
+          </div>
+          
+          <!-- Add Product Form -->
           <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm h-fit space-y-4">
             <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
               ➕ {{ lang === 'en' ? 'Add Product' : 'Shto Produkt' }}
@@ -681,31 +827,50 @@ export default {
             </form>
           </div>
 
+          <!-- Product Management List -->
           <div class="lg:col-span-2 space-y-6">
             
             <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
-              <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
-                🏷️ {{ lang === 'en' ? 'Store Products & Stock Status' : 'Produktet në Dyqan dhe Gjendja e Stokut' }}
-              </h2>
+              <!-- Header with Delete All Button -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+                <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider">
+                  🏷️ {{ lang === 'en' ? 'Store Products & Stock Status' : 'Produktet në Dyqan dhe Gjendja e Stokut' }} ({{ vendorProducts.length }})
+                </h2>
+                <div class="flex items-center gap-2">
+                  <button 
+                    v-if="vendorProducts.length > 0"
+                    type="button" 
+                    @click="handleClearAllMyProducts" 
+                    class="bg-red-600 hover:bg-red-700 text-white font-black px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95">
+                    🗑️ {{ lang === 'en' ? 'Delete All Shop Products' : 'Fshi Të Gjitha Produktet e Dyqanit' }}
+                  </button>
+                  <button type="button" @click="productsExpanded = !productsExpanded" class="text-[10px] font-black uppercase text-gray-600 hover:text-gray-900 transition border border-gray-200 px-2.5 py-1 rounded-lg">
+                    {{ productsExpanded ? (lang === 'en' ? 'Collapse' : 'Mbyll') : (lang === 'en' ? 'Expand' : 'Zgjero') }}
+                  </button>
+                </div>
+              </div>
 
-              <div v-if="vendorProducts.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div v-for="product in vendorProducts" :key="product.id" class="border border-gray-100 bg-gray-50 rounded-2xl p-4 flex gap-4 items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <img :src="product.images[0]" class="w-14 h-14 object-cover rounded-xl border border-gray-200" />
-                    <div>
-                      <h4 class="text-xs font-black text-gray-900 uppercase flex items-center gap-2">
+              <div v-if="vendorProducts.length > 0" v-show="productsExpanded" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div v-for="product in vendorProducts" :key="product.id" class="border border-gray-100 bg-gray-50 rounded-2xl p-3 flex gap-3 items-start justify-between">
+                  <div class="flex items-start gap-3 min-w-0">
+                    <img :src="product.images[0]" class="w-12 h-12 object-cover rounded-xl border border-gray-200 shrink-0" />
+                    <div class="min-w-0">
+                      <h4 class="text-[11px] font-black text-gray-900 uppercase flex items-center gap-2 truncate">
                         {{ product.name }}
-                        <span v-if="product.stock <= 3" class="px-1.5 py-0.5 bg-red-100 text-red-600 text-[9px] rounded font-black animate-pulse">
-                          ⚠️ {{ lang === 'en' ? 'Critical Stock:' : 'Stok Kritik:' }} {{ product.stock }}
+                        <span v-if="product.stock <= 3" class="px-1.5 py-0.5 bg-red-100 text-red-600 text-[8px] rounded font-black animate-pulse">
+                          ⚠️ {{ product.stock }}
                         </span>
                       </h4>
-                      <p class="text-[11px] font-bold text-[#d61f43] mt-0.5">
-                        €{{ product.price }} | {{ lang === 'en' ? 'Category:' : 'Kategoria:' }} {{ product.category || 'General' }} | {{ lang === 'en' ? 'Stock:' : 'Stoku:' }} {{ product.stock }}
+                      <p class="text-[10px] font-bold text-[#d61f43] mt-0.5">
+                        €{{ product.price }} | {{ lang === 'en' ? 'Stock' : 'Stoku' }}: {{ product.stock }}
+                      </p>
+                      <p v-if="product.description" class="text-[10px] text-gray-600 mt-1 truncate">
+                        {{ product.description }}
                       </p>
                     </div>
                   </div>
-                  <button @click="handleDeleteProduct(product.id)" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 font-black text-[10px] uppercase rounded-lg transition">
-                    {{ lang === 'en' ? 'Delete 🗑️' : 'Fshi 🗑️' }}
+                  <button type="button" @click="handleDeleteProduct(product.id)" class="px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-black text-[9px] uppercase rounded-lg transition shrink-0">
+                    {{ lang === 'en' ? 'Delete Product' : 'Fshi Produktin' }}
                   </button>
                 </div>
               </div>
@@ -714,6 +879,7 @@ export default {
               </div>
             </div>
 
+            <!-- Incoming Orders Section -->
             <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
               <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
                 📦 {{ lang === 'en' ? 'Incoming Orders & Shipping Status' : 'Porositë e Ardhura dhe Statusi i Dërgesës' }}
@@ -726,10 +892,10 @@ export default {
                       {{ lang === 'en' ? 'Order:' : 'Porosia:' }} {{ order.id }} | {{ lang === 'en' ? 'Tracking Code:' : 'Kodi i Gjurmimit:' }} <span class="text-[#d61f43]">{{ order.trackingCode }}</span>
                     </span>
                     <select v-model="order.status" @change="updateOrderStatus" class="text-[10px] font-black bg-white border border-gray-200 px-2 py-1 rounded-lg uppercase">
-                      <option value="Yeni Sipariş">{{ lang === 'en' ? 'New Order' : 'Porosi e Re' }}</option>
-                      <option value="Hazırlanıyor">{{ lang === 'en' ? 'Preparing' : 'Duke u Përgatitur' }}</option>
-                      <option value="Kargoda">{{ lang === 'en' ? 'Shipped' : 'Në Transport' }}</option>
-                      <option value="Tamamlandı">{{ lang === 'en' ? 'Completed' : 'E Përfunduar' }}</option>
+                      <option value="Porosi e Re">{{ lang === 'en' ? 'New Order' : 'Porosi e Re' }}</option>
+                      <option value="Duke u Përgatitur">{{ lang === 'en' ? 'Preparing' : 'Duke u Përgatitur' }}</option>
+                      <option value="Në Transport">{{ lang === 'en' ? 'Shipped' : 'Në Transport' }}</option>
+                      <option value="E Përfunduar">{{ lang === 'en' ? 'Completed' : 'E Përfunduar' }}</option>
                     </select>
                   </div>
 
@@ -760,6 +926,7 @@ export default {
 
       </div>
 
+      <!-- SYSTEM MODALS (ADMIN) -->
       <div v-if="activeModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white border border-gray-100 w-full max-w-4xl max-h-[85vh] rounded-3xl p-6 md:p-8 overflow-y-auto space-y-6 shadow-2xl relative">
           
@@ -773,7 +940,19 @@ export default {
             <button @click="activeModal = null" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 flex items-center justify-center text-xs font-bold transition">✕</button>
           </div>
 
-          <div v-if="activeModal === 'allProducts'">
+          <!-- All Products Modal -->
+          <div v-if="activeModal === 'allProducts'" class="space-y-4">
+            <div v-if="products.length > 0" class="flex justify-between items-center bg-red-50 p-3 rounded-2xl border border-red-100">
+              <span class="text-xs font-black text-red-800 uppercase">
+                🚨 {{ lang === 'en' ? `Total Products in System: ${products.length}` : `Gjithsej Produktet në Sistem: ${products.length}` }}
+              </span>
+              <button 
+                @click="handleClearAllSystemProducts" 
+                class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95">
+                🗑️ {{ lang === 'en' ? 'Delete ALL System Products' : 'Fshi të Gjitha Produktet e Sistemit' }}
+              </button>
+            </div>
+
             <div v-if="products.length === 0" class="text-center py-12 text-gray-400 text-xs font-bold uppercase">{{ lang === 'en' ? 'No products found.' : 'Nuk u gjet asnjë produkt.' }}</div>
             <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div v-for="prod in products" :key="prod.id" class="bg-gray-50 border border-gray-100 p-4 rounded-2xl flex items-center justify-between gap-4">
@@ -785,13 +964,14 @@ export default {
                     <div class="text-xs font-mono font-black text-emerald-600">€{{ prod.price.toFixed(2) }} | {{ lang === 'en' ? 'Stock:' : 'Stoku:' }} {{ prod.stock }}</div>
                   </div>
                 </div>
-                <button @click="handleDeleteProduct(prod.id)" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 font-black text-[10px] uppercase rounded-xl transition">
-                  {{ lang === 'en' ? 'Delete 🗑️' : 'Fshi 🗑️' }}
+                <button type="button" @click="handleDeleteProduct(prod.id)" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 font-black text-[10px] uppercase rounded-xl transition">
+                  {{ lang === 'en' ? 'Delete Product 🗑️' : 'Fshi Produktin 🗑️' }}
                 </button>
               </div>
             </div>
           </div>
 
+          <!-- All Users Modal -->
           <div v-else-if="activeModal === 'allUsers'">
             <div v-if="users.length === 0" class="text-center py-12 text-gray-400 text-xs font-bold uppercase">{{ lang === 'en' ? 'No users found.' : 'Nuk u gjet asnjë përdorues.' }}</div>
             <div v-else class="space-y-3">
@@ -818,6 +998,7 @@ export default {
             </div>
           </div>
 
+          <!-- Pending Applications Modal -->
           <div v-else-if="activeModal === 'pendingApps'">
             <div v-if="pendingVendors.length === 0" class="text-center py-12 text-gray-400 text-xs font-bold uppercase">{{ lang === 'en' ? 'No pending applications.' : 'Nuk ka aplikime në pritje.' }}</div>
             <div v-else class="space-y-3">
@@ -869,8 +1050,9 @@ export default {
             </div>
           </div>
 
+          <!-- Support Tickets Modal -->
           <div v-else-if="activeModal === 'supportTickets'">
-            <div v-if="tickets.length === 0" class="text-center py-12 text-gray-400 text-xs font-bold uppercase">{{ lang === 'en' .trim() ? 'No support tickets found.' : 'Nuk u gjet asnjë kërkesë mbështetjeje.' }}</div>
+            <div v-if="tickets.length === 0" class="text-center py-12 text-gray-400 text-xs font-bold uppercase">{{ lang === 'en' ? 'No support tickets found.' : 'Nuk u gjet asnjë kërkesë mbështetjeje.' }}</div>
             <div v-else class="space-y-4">
               <div v-for="t in tickets" :key="t.id" class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-3">
                 <div class="flex justify-between items-center text-xs font-black">
